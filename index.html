@@ -51,12 +51,11 @@
                     advanced: [
                         [["c", "R", "A"], ["c", "L", "G"], ["c", "R", "G"], ["c", "L", "G"]],
                         [["e", "R", "A"], ["c", "L", "G"], ["c", "R", "G"], ["c", "L", "G"]],
-                        [["A", "R", "A"], ["c", "L", "G"], ["e", "R", "G"], ["c", "L", "G"]], // Tom orchestration
-                        [["[!style=x!fF]", "R+K", "A"], ["c", "L", "G"], ["c", "R", "G"], ["c", "L", "G"]]
+                        [["A", "R", "A"], ["c", "L", "G"], ["e", "R", "G"], ["c", "L", "G"]]
                     ],
                     extreme: [
                         [["c", "R", "A"], ["c", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]],
-                        [["e", "R", "A"], ["c", "R", "G"], ["A", "L", "G"], ["e", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]], // Tom Linear
+                        [["e", "R", "A"], ["c", "R", "G"], ["A", "L", "G"], ["e", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]],
                         [["c", "R", "A"], ["F", "K", "K"]],
                         [["c", "R", "A", "/"], ["c", "R", "G", "//"], ["c", "L", "G", "//"], ["c", "L", "G", "/"], ["F", "K", "K", "/"]]
                     ]
@@ -66,8 +65,7 @@
                     advanced: [
                         [["c", "R", "G"], ["c", "L", "A"], ["c", "R", "G"], ["c", "L", "G"]],
                         [["c", "R", "G"], ["A", "L", "A"], ["c", "R", "G"], ["c", "L", "G"]],
-                        [["e", "R", "G"], ["A", "L", "A"], ["e", "R", "G"], ["c", "L", "G"]],
-                        [["c", "R", "G"], ["[!style=x!fF]", "L+K", "A"], ["c", "R", "G"], ["c", "L", "G"]]
+                        [["e", "R", "G"], ["A", "L", "A"], ["e", "R", "G"], ["c", "L", "G"]]
                     ],
                     extreme: [
                         [["F", "K", "K"], ["c", "L", "A"], ["c", "R", "G"], ["c", "R", "G"]],
@@ -80,8 +78,7 @@
                     advanced: [
                         [["c", "R", "G"], ["c", "L", "G"], ["c", "R", "A"], ["c", "L", "G"]],
                         [["c", "R", "G"], ["c", "L", "G"], ["e", "R", "A"], ["c", "L", "G"]],
-                        [["A", "R", "G"], ["e", "L", "G"], ["A", "R", "A"], ["c", "L", "G"]],
-                        [["c", "R", "G"], ["c", "L", "G"], ["[!style=x!fF]", "R+K", "A"], ["c", "L", "G"]]
+                        [["A", "R", "G"], ["e", "L", "G"], ["A", "R", "A"], ["c", "L", "G"]]
                     ],
                     extreme: [
                         [["c", "R", "G"], ["c", "L", "G"], ["c", "R", "A"], ["c", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]],
@@ -94,8 +91,7 @@
                     advanced: [
                         [["c", "R", "G"], ["c", "L", "G"], ["c", "R", "G"], ["c", "L", "A"]],
                         [["c", "R", "G"], ["c", "L", "G"], ["c", "R", "G"], ["A", "L", "A"]],
-                        [["e", "R", "G"], ["c", "L", "G"], ["A", "R", "G"], ["e", "L", "A"]],
-                        [["c", "R", "G"], ["c", "L", "G"], ["c", "R", "G"], ["[!style=x!fF]", "L+K", "A"]]
+                        [["e", "R", "G"], ["c", "L", "G"], ["A", "R", "G"], ["e", "L", "A"]]
                     ],
                     extreme: [
                         [["c", "R", "G"], ["c", "R", "G"], ["e", "L", "G"], ["A", "L", "G"], ["F", "K", "K"], ["c", "L", "A"]],
@@ -104,18 +100,13 @@
                 }
             },
             swing: {
-                rest: { 
-                    basic: [[["z2", "", ""]]], 
-                    advanced: [[["z2", "", ""]]],
-                    extreme: [[["z2", "", ""]]]
-                },
+                rest: { basic: [[["z2", "", ""]]], advanced: [[["z2", "", ""]]] },
                 acc_1: {
                     basic: [[["c", "R", "A"], ["c", "L", "G"], ["c", "R", "G"]]],
                     advanced: [
                         [["c", "R", "A"], ["c", "L", "G"], ["c", "R", "G"]],
                         [["e", "R", "A"], ["c", "L", "G"], ["c", "R", "G"]],
-                        [["A", "R", "A"], ["e", "L", "G"], ["c", "R", "G"]],
-                        [["[!style=x!fF]", "R+K", "A"], ["c", "L", "G"], ["c", "R", "G"]]
+                        [["A", "R", "A"], ["e", "L", "G"], ["c", "R", "G"]]
                     ]
                 },
                 acc_2: {
@@ -123,8 +114,7 @@
                     advanced: [
                         [["c", "L", "G"], ["c", "R", "A"], ["c", "L", "G"]],
                         [["c", "L", "G"], ["A", "R", "A"], ["c", "L", "G"]],
-                        [["e", "L", "G"], ["A", "R", "A"], ["e", "L", "G"]],
-                        [["c", "L", "G"], ["[!style=x!fF]", "L+K", "A"], ["c", "L", "G"]]
+                        [["e", "L", "G"], ["A", "R", "A"], ["e", "L", "G"]]
                     ]
                 },
                 acc_3: {
@@ -132,8 +122,7 @@
                     advanced: [
                         [["c", "R", "G"], ["c", "L", "G"], ["c", "R", "A"]],
                         [["c", "R", "G"], ["c", "L", "G"], ["e", "R", "A"]],
-                        [["e", "R", "G"], ["A", "L", "G"], ["A", "R", "A"]],
-                        [["c", "R", "G"], ["c", "L", "G"], ["[!style=x!fF]", "R+K", "A"]]
+                        [["e", "R", "G"], ["A", "L", "G"], ["A", "R", "A"]]
                     ]
                 },
                 acc_4: {
@@ -141,8 +130,7 @@
                     advanced: [
                         [["c", "L", "G"], ["c", "R", "G"], ["c", "L", "A"]],
                         [["c", "L", "G"], ["c", "R", "G"], ["A", "L", "A"]],
-                        [["A", "L", "G"], ["c", "R", "G"], ["e", "L", "A"]],
-                        [["c", "L", "G"], ["c", "R", "G"], ["[!style=x!fF]", "L+K", "A"]]
+                        [["A", "L", "G"], ["c", "R", "G"], ["e", "L", "A"]]
                     ]
                 }
             }
@@ -214,11 +202,8 @@
                     const motifOptions = keyConfig[targetDifficulty] || keyConfig['basic'];
                     let motifDef = motifOptions[variationIndex % motifOptions.length];
                     
-                    // --- タム出現率の制限ロジックを緩和 (35%程度にアップ) ---
+                    // --- タム出現率の制限ロジック (35%程度) ---
                     const hasToms = motifDef.some(step => step.some(part => part === 'e' || part === 'A'));
-                    
-                    // タムが含まれる場合、variationIndexの下一桁が3以下の時(約35%〜40%の確率)はそのまま採用。
-                    // それ以外は Basic (スネア中心) に戻すことで、多すぎず少なすぎないバランスへ。
                     if (hasToms && (variationIndex % 10 >= 4)) {
                         const basicOptions = keyConfig['basic'];
                         motifDef = basicOptions[variationIndex % basicOptions.length];
@@ -226,10 +211,22 @@
 
                     let motif = JSON.parse(JSON.stringify(motifDef));
                     
-                    if (difficulty !== 'basic' && isCrash && !motif[0][0].includes("z")) {
-                        motif[0][0] = "[!style=x!fF]";
-                        motif[0][1] = "R+K";
-                        motif[0][2] = "A";   
+                    // --- クラッシュシンバルの適用 ---
+                    // Basic以外かつisCrashフラグがある場合、モチーフ内の「アクセント」を探してクラッシュ+キックに変更
+                    if (difficulty !== 'basic' && isCrash) {
+                        for (let i = 0; i < motif.length; i++) {
+                            if (motif[i][2] === 'A') { // アクセント(Strong)を見つけたら
+                                motif[i][0] = "[!style=x!fF]"; // クラッシュ記号に変更
+                                // 手順にキックを追加
+                                const currentSticking = motif[i][1];
+                                if (currentSticking && !currentSticking.includes("K")) {
+                                    motif[i][1] = currentSticking + "+K";
+                                } else if (!currentSticking) {
+                                    motif[i][1] = "R+K";
+                                }
+                                break; // 1つのモチーフに対して最初のアクセント1つだけをクラッシュにする
+                            }
+                        }
                     }
 
                     let { notes, words } = slotToNotesAndWords(motif);
@@ -304,9 +301,14 @@ K:perc
                 for (let bar = 0; bar < 4; bar++) {
                     let barSkeleton = [];
                     for (let beat = 0; beat < 4; beat++) {
-                        let isCrash = ((bar === 0 || bar === 2) && beat === 0 && Math.random() > 0.3);
                         let key = weightedKeys[Math.floor(Math.random() * weightedKeys.length)];
-                        if (isCrash && key === 'rest') key = 'acc_1'; 
+                        
+                        // クラッシュを入れる判定:
+                        // 1. 小節の頭(beat 0)であること
+                        // 2. そこにアクセントが存在すること(key !== 'rest')
+                        // 3. 確率(1小節目は高め、それ以外は50%)
+                        let crashProb = (beat === 0 && key !== 'rest') ? (bar === 0 ? 0.8 : 0.5) : 0;
+                        let isCrash = Math.random() < crashProb;
                         
                         let variationIndex = Math.floor(Math.random() * 100);
                         barSkeleton.push({ key, isCrash, variationIndex });
@@ -398,8 +400,8 @@ K:perc
                         <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-5">
                             <h3 className="font-bold text-indigo-900 mb-3 border-b border-indigo-200 pb-2">💡 練習のヒント</h3>
                             <ul className="text-sm text-indigo-800 space-y-3">
-                                <li><strong>タムの出現率(アップ):</strong> 前回の制限を緩め、アクセント箇所の約35%〜40%程度でハイタム（上）やフロアタム（下）が絡むようにしました。ドラムセット全体を使ったより音楽的な移動が楽しめます。</li>
-                                <li><strong>Trade Mode:</strong> 🎧 4-Bar Tradeにチェックを入れると、フレーズの後に4小節の休みが追加され、アプリとの4バース交換練習ができます。</li>
+                                <li><strong>アクセントの固定:</strong> 難易度を変えても音のタイミング（アクセント位置）はBasicと完全に同じです。Basicでメロディを覚え、他で表現を広げましょう。</li>
+                                <li><strong>クラッシュの強調:</strong> Orchestration以上では、小節の頭などにアクセントがある場合、自動的にクラッシュ＋キックへ置き換えられます。</li>
                             </ul>
                         </div>
                         <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-5">
