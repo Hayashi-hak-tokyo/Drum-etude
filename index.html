@@ -30,7 +30,6 @@
             display: none !important;
         }
         
-        /* スマホ向けにボタンの連打によるズームを防止 */
         button { user-select: none; -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
@@ -48,6 +47,30 @@
                     advanced: [[["z2", "", ""]]],
                     extreme: [[["z2", "", ""]]]
                 },
+                // --- グリッチ専用モチーフ (Extremeの休符埋め用) ---
+                glitch_fill: {
+                    extreme: [
+                        [["c", "r", "G"], ["F", "K", "K"], ["F", "K", "K"], ["c", "l", "G"]], // rKKl
+                        [["F", "K", "K"], ["c", "r", "G"], ["c", "l", "G"], ["F", "K", "K"]], // KrrK
+                        [["c", "r", "G"], ["c", "l", "G"], ["F", "K", "K"], ["F", "K", "K"]], // rrKK
+                        [["c", "r", "G"], ["F", "K", "K"], ["c", "l", "G"], ["F", "K", "K"]]  // rKrK
+                    ]
+                },
+                glitch_lead: {
+                    extreme: [
+                        // 32nd notes are now explicitly DOUBLE STROKES (rr, ll)
+                        [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K", "/"], ["F", "K", "K", "/"]], // rrllKK
+                        [["F", "K", "K", "/"], ["F", "K", "K", "/"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"]], // KKrrll
+                        [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["c", "r", "G", "/"], ["c", "l", "G", "/"]]  // rrllrl
+                    ]
+                },
+                glitch_triplet: {
+                    extreme: [
+                        [["c", "r", "G"], ["F", "K", "K"], ["F", "K", "K"]], // (3rKK
+                        [["F", "K", "K"], ["c", "r", "G"], ["c", "l", "G"]]  // (3Krr
+                    ]
+                },
+                // --- アクセントモチーフ ---
                 acc_1: {
                     basic: [[["c", "R", "A"], ["c", "L", "G"], ["c", "R", "G"], ["c", "L", "G"]]],
                     advanced: [
@@ -56,10 +79,11 @@
                         [["A", "R", "A"], ["c", "L", "G"], ["e", "R", "G"], ["c", "L", "G"]]
                     ],
                     extreme: [
-                        [["c", "R", "A"], ["c", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]],
-                        [["e", "R", "A"], ["c", "R", "G"], ["A", "L", "G"], ["e", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]],
-                        [["c", "R", "A"], ["F", "K", "K"]],
-                        [["c", "R", "A", "/"], ["c", "R", "G", "//"], ["c", "L", "G", "//"], ["c", "L", "G", "/"], ["F", "K", "K", "/"]]
+                        [["c", "R", "A"], ["c", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]], 
+                        [["c", "R", "A"], ["c", "R", "G"], ["c", "L", "G"], ["c", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]],
+                        [["c", "R", "A"], ["F", "K", "K"]], 
+                        // Modified to doubles: R rr ll KK
+                        [["c", "R", "A", "/"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K", "/"]]
                     ]
                 },
                 acc_2: {
@@ -72,7 +96,8 @@
                     extreme: [
                         [["F", "K", "K"], ["c", "L", "A"], ["c", "R", "G"], ["c", "R", "G"]],
                         [["F", "K", "K"], ["e", "L", "A"], ["c", "R", "G"], ["A", "L", "G"], ["c", "R", "G"], ["e", "L", "G"]],
-                        [["F", "K", "K", "/"], ["A", "L", "A", "/"], ["c", "R", "G", "//"], ["c", "R", "G", "//"], ["c", "L", "G", "/"]]
+                        // KK L rr ll
+                        [["F", "K", "K", "/"], ["c", "L", "A", "/"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"]]
                     ]
                 },
                 acc_3: {
@@ -85,7 +110,8 @@
                     extreme: [
                         [["c", "R", "G"], ["c", "L", "G"], ["c", "R", "A"], ["c", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]],
                         [["e", "R", "G"], ["c", "L", "G"], ["F", "K", "K"], ["A", "R", "A"], ["F", "K", "K"], ["c", "L", "G"]],
-                        [["c", "R", "G", "//"], ["c", "R", "G", "//"], ["e", "L", "G", "/"], ["A", "R", "A", "/"], ["F", "K", "K", "/"]]
+                        // rr ll R KK
+                        [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["c", "R", "A", "/"], ["F", "K", "K", "/"]]
                     ]
                 },
                 acc_4: {
@@ -97,7 +123,7 @@
                     ],
                     extreme: [
                         [["c", "R", "G"], ["c", "R", "G"], ["e", "L", "G"], ["A", "L", "G"], ["F", "K", "K"], ["c", "L", "A"]],
-                        [["F", "K", "K"], ["F", "K", "K"], ["e", "R", "G"], ["A", "L", "A"]]
+                        [["F", "K", "K"], ["F", "K", "K"], ["c", "R", "G"], ["c", "L", "A"]]
                     ]
                 }
             },
@@ -196,15 +222,34 @@
                 for (let beat = 0; beat < 4; beat++) {
                     const { key, isCrash, variationIndex } = skeleton[bar][beat];
                     const feelConfig = MOTIF_LIBRARY[feel];
-                    const keyConfig = feelConfig[key] || feelConfig['rest'];
                     
+                    let keyToUse = key;
+                    
+                    // --- Extreme Glitch Logic ---
+                    if (difficulty === 'extreme' && feel === 'straight' && key === 'rest') {
+                        let nextBar = bar;
+                        let nextBeat = beat + 1;
+                        if (nextBeat > 3) { nextBar++; nextBeat = 0; }
+                        
+                        const nextExists = nextBar < 4;
+                        const nextIsAccent = nextExists && skeleton[nextBar][nextBeat].key !== 'rest';
+                        
+                        if (variationIndex % 20 === 0) {
+                            keyToUse = 'glitch_triplet';
+                        } else if (nextIsAccent) {
+                            keyToUse = 'glitch_lead';
+                        } else {
+                            keyToUse = 'glitch_fill';
+                        }
+                    }
+
+                    const keyConfig = feelConfig[keyToUse] || feelConfig['rest'];
                     let targetDifficulty = difficulty;
                     if (feel === 'swing' && difficulty === 'extreme') targetDifficulty = 'advanced';
                     
-                    const motifOptions = keyConfig[targetDifficulty] || keyConfig['basic'];
+                    const motifOptions = keyConfig[targetDifficulty] || keyConfig['extreme'] || keyConfig['basic'];
                     let motifDef = motifOptions[variationIndex % motifOptions.length];
                     
-                    // タム出現率の制限ロジック (35%程度)
                     const hasToms = motifDef.some(step => step.some(part => part === 'e' || part === 'A'));
                     if (hasToms && (variationIndex % 10 >= 4)) {
                         motifDef = keyConfig['basic'][variationIndex % keyConfig['basic'].length];
@@ -212,11 +257,8 @@
 
                     let motif = JSON.parse(JSON.stringify(motifDef));
                     
-                    // --- クラッシュシンバルの適用 (アクセントの置き換え) ---
-                    // Basic以外かつisCrashフラグがある場合、モチーフ内の「アクセント」を探してクラッシュに変更
                     if (difficulty !== 'basic' && isCrash) {
                         for (let i = 0; i < motif.length; i++) {
-                            // 既存のアクセント（大文字手順）の位置だけをクラッシュに変更する
                             if (motif[i][2] === 'A') { 
                                 motif[i][0] = "[!style=x!fF]"; 
                                 const currentSticking = motif[i][1];
@@ -264,7 +306,6 @@
             const audioContainerRef = useRef(null);
             const synthControlRef = useRef(null);
 
-            // スマホ向けのオーディオ有効化関数
             const unlockAudio = async () => {
                 const context = ABCJS.synth.activeAudioContext();
                 if (context && context.state === 'suspended') {
@@ -280,11 +321,11 @@
             }, [feel]);
 
             const generateNewSkeleton = () => {
-                unlockAudio(); // 生成時にオーディオをアンロック
-                const keys = Object.keys(MOTIF_LIBRARY[feel]);
+                unlockAudio();
+                const keys = Object.keys(MOTIF_LIBRARY[feel]).filter(k => k.startsWith('acc') || k === 'rest');
                 const weightedKeys = [];
                 keys.forEach(k => {
-                    if (k === 'rest') weightedKeys.push(k);
+                    if (k === 'rest') weightedKeys.push(k, k); 
                     else weightedKeys.push(k, k, k);
                 });
 
@@ -293,11 +334,8 @@
                     let barSkeleton = [];
                     for (let beat = 0; beat < 4; beat++) {
                         let key = weightedKeys[Math.floor(Math.random() * weightedKeys.length)];
-                        
-                        // クラッシュ条件: 拍の頭(beat 0)で、かつそこに既にアクセントがある場合のみ
                         let crashProb = (beat === 0 && key !== 'rest') ? (bar === 0 ? 0.8 : 0.4) : 0;
                         let isCrash = Math.random() < crashProb;
-                        
                         let variationIndex = Math.floor(Math.random() * 100);
                         barSkeleton.push({ key, isCrash, variationIndex });
                     }
@@ -367,7 +405,7 @@
                                 <button onClick={() => handleDiffChange('basic')} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === 'basic' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>1. Basic</button>
                                 <button onClick={() => handleDiffChange('advanced')} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === 'advanced' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>2. Orchestration</button>
                                 {feel === 'straight' && (
-                                    <button onClick={() => handleDiffChange('extreme')} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === 'extreme' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>3. Extreme</button>
+                                    <button onClick={() => handleDiffChange('extreme')} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === 'extreme' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>3. Extreme (Glitch)</button>
                                 )}
                             </div>
                         </div>
@@ -393,10 +431,12 @@
 
                     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
-                            <h3 className="font-bold text-indigo-900 mb-2 border-b border-indigo-200 pb-1 text-sm">💡 スマホで音が出ない場合</h3>
-                            <p className="text-xs text-indigo-800">
-                                ブラウザの制限により、最初に上の <strong>New Phrasing</strong> ボタンや難易度ボタンを一度タップしてオーディオを有効にする必要があります。その後、プレイヤーの再生ボタンを押してください。
-                            </p>
+                            <h3 className="font-bold text-indigo-900 mb-2 border-b border-indigo-200 pb-1 text-sm">💡 Extremeモードのロジック</h3>
+                            <ul className="text-xs text-indigo-800 space-y-2">
+                                <li><strong>32分音符はダブル:</strong> <code>rr</code> や <code>ll</code> の手順に固定され、高速でも滑らかに演奏可能です。</li>
+                                <li><strong>グリッチ・フィラー:</strong> 休符部分がスネアとキックの細かい手順で埋められます。</li>
+                                <li><strong>リードイン:</strong> アクセント直前の拍にはダブルを多用した推進力のあるグリッチが挿入されます。</li>
+                            </ul>
                         </div>
                         <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-4">
                             <h3 className="font-bold text-zinc-800 mb-2 border-b border-indigo-200 pb-1 text-sm">🥁 手順の読み方</h3>
