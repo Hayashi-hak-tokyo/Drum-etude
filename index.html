@@ -21,24 +21,26 @@
 
     <style>
         .abcjs-css-warning { display: none !important; }
-        body { font-family: 'Inter', sans-serif; background-color: #f4f4f5; }
+        body { font-family: 'Inter', sans-serif; background-color: #f4f4f5; touch-action: manipulation; }
         #score-container svg { width: 100%; height: auto; display: block; }
-        .abcjs-inline-audio { max-width: 100%; padding: 10px; }
+        .abcjs-inline-audio { max-width: 100%; padding: 10px; border-radius: 8px; }
 
-        /* 楽譜上のダイナミクス記号(f, p, fp等)とアクセント記号(>)を非表示にする */
+        /* 楽譜上の記号を非表示にし、Stickingテキストを見やすくする */
         .abcjs-decoration, .abcjs-articulation, .abcjs-dynamics {
             display: none !important;
         }
+        
+        /* スマホ向けにボタンの連打によるズームを防止 */
+        button { user-select: none; -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
-<body class="p-4 md:p-8 text-zinc-800">
+<body class="p-2 md:p-8 text-zinc-800">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
         // --- MOTIF LIBRARY ---
-        // e: High Tom, c: Snare, A: Floor Tom, F: Kick, f: Crash
         const MOTIF_LIBRARY = {
             straight: {
                 rest: {
@@ -202,29 +204,28 @@
                     const motifOptions = keyConfig[targetDifficulty] || keyConfig['basic'];
                     let motifDef = motifOptions[variationIndex % motifOptions.length];
                     
-                    // --- タム出現率の制限ロジック (35%程度) ---
+                    // タム出現率の制限ロジック (35%程度)
                     const hasToms = motifDef.some(step => step.some(part => part === 'e' || part === 'A'));
                     if (hasToms && (variationIndex % 10 >= 4)) {
-                        const basicOptions = keyConfig['basic'];
-                        motifDef = basicOptions[variationIndex % basicOptions.length];
+                        motifDef = keyConfig['basic'][variationIndex % keyConfig['basic'].length];
                     }
 
                     let motif = JSON.parse(JSON.stringify(motifDef));
                     
-                    // --- クラッシュシンバルの適用 ---
-                    // Basic以外かつisCrashフラグがある場合、モチーフ内の「アクセント」を探してクラッシュ+キックに変更
+                    // --- クラッシュシンバルの適用 (アクセントの置き換え) ---
+                    // Basic以外かつisCrashフラグがある場合、モチーフ内の「アクセント」を探してクラッシュに変更
                     if (difficulty !== 'basic' && isCrash) {
                         for (let i = 0; i < motif.length; i++) {
-                            if (motif[i][2] === 'A') { // アクセント(Strong)を見つけたら
-                                motif[i][0] = "[!style=x!fF]"; // クラッシュ記号に変更
-                                // 手順にキックを追加
+                            // 既存のアクセント（大文字手順）の位置だけをクラッシュに変更する
+                            if (motif[i][2] === 'A') { 
+                                motif[i][0] = "[!style=x!fF]"; 
                                 const currentSticking = motif[i][1];
                                 if (currentSticking && !currentSticking.includes("K")) {
                                     motif[i][1] = currentSticking + "+K";
                                 } else if (!currentSticking) {
                                     motif[i][1] = "R+K";
                                 }
-                                break; // 1つのモチーフに対して最初のアクセント1つだけをクラッシュにする
+                                break; 
                             }
                         }
                     }
@@ -251,25 +252,6 @@
             return notesStr + "\n" + wordsStr;
         }
 
-        function buildAbcString(abcBody, feel) {
-            return `X:1
-T:D.R.O.P. Solo Etude
-M:4/4
-L:1/8
-Q:1/4=90
-K:perc
-%%MIDI channel 10
-%%MIDI drummap f 49
-%%MIDI drummap e 45
-%%MIDI drummap c 38
-%%MIDI drummap A 43
-%%MIDI drummap F 36
-%%stretchlast 1
-%%vocalfont sans-serif 16
-%%stafflines 5
-` + abcBody;
-        }
-
         const App = () => {
             const [difficulty, setDifficulty] = useState('basic');
             const [feel, setFeel] = useState('straight');
@@ -282,6 +264,14 @@ K:perc
             const audioContainerRef = useRef(null);
             const synthControlRef = useRef(null);
 
+            // スマホ向けのオーディオ有効化関数
+            const unlockAudio = async () => {
+                const context = ABCJS.synth.activeAudioContext();
+                if (context && context.state === 'suspended') {
+                    await context.resume();
+                }
+            };
+
             useEffect(() => {
                 generateNewSkeleton();
                 if (feel === 'swing' && difficulty === 'extreme') {
@@ -290,6 +280,7 @@ K:perc
             }, [feel]);
 
             const generateNewSkeleton = () => {
+                unlockAudio(); // 生成時にオーディオをアンロック
                 const keys = Object.keys(MOTIF_LIBRARY[feel]);
                 const weightedKeys = [];
                 keys.forEach(k => {
@@ -303,11 +294,8 @@ K:perc
                     for (let beat = 0; beat < 4; beat++) {
                         let key = weightedKeys[Math.floor(Math.random() * weightedKeys.length)];
                         
-                        // クラッシュを入れる判定:
-                        // 1. 小節の頭(beat 0)であること
-                        // 2. そこにアクセントが存在すること(key !== 'rest')
-                        // 3. 確率(1小節目は高め、それ以外は50%)
-                        let crashProb = (beat === 0 && key !== 'rest') ? (bar === 0 ? 0.8 : 0.5) : 0;
+                        // クラッシュ条件: 拍の頭(beat 0)で、かつそこに既にアクセントがある場合のみ
+                        let crashProb = (beat === 0 && key !== 'rest') ? (bar === 0 ? 0.8 : 0.4) : 0;
                         let isCrash = Math.random() < crashProb;
                         
                         let variationIndex = Math.floor(Math.random() * 100);
@@ -322,7 +310,7 @@ K:perc
                 if (skeleton) {
                     const body = skeletonToAbc(skeleton, difficulty, feel, isTradeMode);
                     if (body) {
-                        setAbcString(buildAbcString(body, feel));
+                        setAbcString(`X:1\nT:D.R.O.P. Solo Etude\nM:4/4\nL:1/8\nQ:1/4=90\nK:perc\n%%MIDI channel 10\n%%MIDI drummap f 49\n%%MIDI drummap e 45\n%%MIDI drummap c 38\n%%MIDI drummap A 43\n%%MIDI drummap F 36\n%%stretchlast 1\n%%vocalfont sans-serif 16\n%%stafflines 5\n` + body);
                     }
                 }
             }, [skeleton, difficulty, feel, isTradeMode]);
@@ -357,56 +345,62 @@ K:perc
                 }
             }, [visualObj]);
 
+            const handleDiffChange = (newDiff) => {
+                unlockAudio();
+                setDifficulty(newDiff);
+            };
+
             return (
-                <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 mt-4">
-                    <div className="text-center mb-6">
-                        <h1 className="text-3xl font-bold text-zinc-800">D.R.O.P. Solo Etude</h1>
+                <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-3 md:p-6 mt-2 md:mt-4">
+                    <div className="text-center mb-4 md:mb-6">
+                        <h1 className="text-2xl md:text-3xl font-bold text-zinc-800">D.R.O.P. Solo Etude</h1>
                     </div>
 
-                    <div className="flex flex-col md:flex-row flex-wrap justify-center items-center gap-4 mb-6 bg-zinc-50 p-4 rounded-lg border border-zinc-200">
-                        <div className="flex gap-4 flex-wrap justify-center">
+                    <div className="flex flex-col gap-4 mb-6 bg-zinc-50 p-3 md:p-4 rounded-lg border border-zinc-200">
+                        <div className="flex flex-wrap justify-center gap-3">
                             <div className="flex bg-white rounded-md border border-zinc-300 overflow-hidden shadow-sm">
-                                <button onClick={() => setFeel('straight')} className={`px-4 py-2 text-sm font-medium transition-colors ${feel === 'straight' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>Straight</button>
-                                <button onClick={() => setFeel('swing')} className={`px-4 py-2 text-sm font-medium transition-colors ${feel === 'swing' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>Swing</button>
+                                <button onClick={() => { unlockAudio(); setFeel('straight'); }} className={`px-4 py-2 text-sm font-medium transition-colors ${feel === 'straight' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>Straight</button>
+                                <button onClick={() => { unlockAudio(); setFeel('swing'); }} className={`px-4 py-2 text-sm font-medium transition-colors ${feel === 'swing' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>Swing</button>
                             </div>
 
                             <div className="flex bg-white rounded-md border border-zinc-300 overflow-hidden shadow-sm">
-                                <button onClick={() => setDifficulty('basic')} className={`px-4 py-2 text-sm font-medium transition-colors ${difficulty === 'basic' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>1. Basic</button>
-                                <button onClick={() => setDifficulty('advanced')} className={`px-4 py-2 text-sm font-medium transition-colors ${difficulty === 'advanced' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>2. Orchestration</button>
+                                <button onClick={() => handleDiffChange('basic')} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === 'basic' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>1. Basic</button>
+                                <button onClick={() => handleDiffChange('advanced')} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === 'advanced' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>2. Orchestration</button>
                                 {feel === 'straight' && (
-                                    <button onClick={() => setDifficulty('extreme')} className={`px-4 py-2 text-sm font-medium transition-colors ${difficulty === 'extreme' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>3. Extreme (IDM)</button>
+                                    <button onClick={() => handleDiffChange('extreme')} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === 'extreme' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>3. Extreme</button>
                                 )}
                             </div>
                         </div>
 
-                        <div className="flex gap-4 items-center">
+                        <div className="flex flex-wrap justify-center gap-3 items-center">
                             <label className="flex items-center space-x-2 cursor-pointer bg-white px-4 py-2 rounded-md border border-zinc-300 shadow-sm hover:bg-zinc-50 transition-colors">
                                 <input type="checkbox" checked={isTradeMode} onChange={(e) => setIsTradeMode(e.target.checked)} className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500" />
-                                <span className="text-sm font-medium text-zinc-700">🎧 4-Bar Trade</span>
+                                <span className="text-xs md:text-sm font-medium text-zinc-700">🎧 4-Bar Trade</span>
                             </label>
-                            <button onClick={generateNewSkeleton} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md shadow-sm transition-colors">🔄 New Phrasing</button>
+                            <button onClick={generateNewSkeleton} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md shadow-sm transition-colors text-sm">
+                                🔄 New Phrasing
+                            </button>
                         </div>
                     </div>
 
-                    <div className="bg-white border-2 border-zinc-100 rounded-lg p-4 overflow-x-auto min-h-[150px]">
+                    <div className="bg-white border-2 border-zinc-100 rounded-lg p-2 md:p-4 overflow-x-auto min-h-[150px]">
                         <div ref={scoreRef}></div>
                     </div>
 
-                    <div className="mt-4 bg-slate-200 border border-slate-300 rounded-lg p-3 w-full max-w-2xl mx-auto shadow-inner">
+                    <div className="mt-4 bg-slate-200 border border-slate-300 rounded-lg p-2 w-full max-w-2xl mx-auto shadow-inner">
                         <div ref={audioContainerRef} className="w-full"></div>
                     </div>
 
-                    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-5">
-                            <h3 className="font-bold text-indigo-900 mb-3 border-b border-indigo-200 pb-2">💡 練習のヒント</h3>
-                            <ul className="text-sm text-indigo-800 space-y-3">
-                                <li><strong>アクセントの固定:</strong> 難易度を変えても音のタイミング（アクセント位置）はBasicと完全に同じです。Basicでメロディを覚え、他で表現を広げましょう。</li>
-                                <li><strong>クラッシュの強調:</strong> Orchestration以上では、小節の頭などにアクセントがある場合、自動的にクラッシュ＋キックへ置き換えられます。</li>
-                            </ul>
+                    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+                            <h3 className="font-bold text-indigo-900 mb-2 border-b border-indigo-200 pb-1 text-sm">💡 スマホで音が出ない場合</h3>
+                            <p className="text-xs text-indigo-800">
+                                ブラウザの制限により、最初に上の <strong>New Phrasing</strong> ボタンや難易度ボタンを一度タップしてオーディオを有効にする必要があります。その後、プレイヤーの再生ボタンを押してください。
+                            </p>
                         </div>
-                        <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-5">
-                            <h3 className="font-bold text-zinc-800 mb-3 border-b border-indigo-200 pb-2">🥁 手順の読み方</h3>
-                            <ul className="text-sm text-zinc-600 space-y-1 font-mono bg-white p-2 rounded border border-zinc-100">
+                        <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-4">
+                            <h3 className="font-bold text-zinc-800 mb-2 border-b border-indigo-200 pb-1 text-sm">🥁 手順の読み方</h3>
+                            <ul className="text-xs text-zinc-600 space-y-1 font-mono bg-white p-2 rounded">
                                 <li><strong>R / L / K :</strong> アクセント (強)</li>
                                 <li><strong>r / l :</strong> ゴーストノート (弱)</li>
                             </ul>
