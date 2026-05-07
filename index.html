@@ -40,7 +40,6 @@
         const { useState, useEffect, useRef } = React;
 
         // --- MOTIF LIBRARY ---
-        // 手順の安全性: ダブル(RR, LL)は必ず同一楽器(e, c, A, F)になるよう修正
         const MOTIF_LIBRARY = {
             straight: {
                 rest: {
@@ -78,7 +77,7 @@
                     ],
                     extreme: [
                         [["c", "R", "A"], ["c", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]], 
-                        [["c", "R", "A"], ["c", "R", "G"], ["c", "L", "G"], ["c", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]], // rr ll on Snare
+                        [["c", "R", "A"], ["c", "R", "G"], ["c", "L", "G"], ["c", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]],
                         [["c", "R", "A"], ["F", "K", "K"]], 
                         [["c", "R", "A", "/"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K", "/"]]
                     ]
@@ -91,8 +90,8 @@
                         [["e", "R", "G"], ["A", "L", "A"], ["e", "R", "G"], ["c", "L", "G"]]
                     ],
                     extreme: [
-                        [["F", "K", "K"], ["c", "L", "A"], ["c", "R", "G"], ["c", "R", "G"]], // RR on Snare
-                        [["F", "K", "K"], ["e", "L", "A"], ["c", "R", "G"], ["A", "L", "G"], ["c", "R", "G"], ["e", "L", "G"]], // RLRL Singles
+                        [["F", "K", "K"], ["c", "L", "A"], ["c", "R", "G"], ["c", "R", "G"]], 
+                        [["F", "K", "K"], ["e", "L", "A"], ["c", "R", "G"], ["A", "L", "G"], ["c", "R", "G"], ["e", "L", "G"]],
                         [["F", "K", "K", "/"], ["c", "L", "A", "/"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"]]
                     ]
                 },
@@ -117,7 +116,7 @@
                         [["e", "R", "G"], ["c", "L", "G"], ["A", "R", "G"], ["e", "L", "A"]]
                     ],
                     extreme: [
-                        [["c", "R", "G"], ["c", "R", "G"], ["A", "L", "G"], ["A", "L", "G"], ["F", "K", "K"], ["c", "L", "A"]], // Corrected cross-drum double
+                        [["c", "R", "G"], ["c", "R", "G"], ["A", "L", "G"], ["A", "L", "G"], ["F", "K", "K"], ["c", "L", "A"]], 
                         [["F", "K", "K"], ["F", "K", "K"], ["e", "R", "G"], ["A", "L", "A"]]
                     ]
                 }
@@ -159,134 +158,145 @@
             }
         };
 
+        // --- 手順と足の連打を防止するコアロジック ---
+        function applyStickingGuard(fullPhrase) {
+            let lastHand = "";
+            let handCount = 0;
+            let kickCount = 0;
+
+            for (let i = 0; i < fullPhrase.length; i++) {
+                let sticking = fullPhrase[i][1] || "";
+                let hasKick = sticking.includes("K");
+                let hand = "";
+                if (sticking.toUpperCase().includes("R")) hand = "R";
+                else if (sticking.toUpperCase().includes("L")) hand = "L";
+
+                // --- Hand Guard (手) ---
+                if (hand !== "") {
+                    if (hand === lastHand) {
+                        handCount++;
+                    } else {
+                        handCount = 1;
+                        lastHand = hand;
+                    }
+                    if (handCount > 2) {
+                        // 3連打目を反転
+                        let newBase = (hand === "R") ? "L" : "R";
+                        // ゴーストかアクセントか判定（大文字小文字）
+                        let isGhost = (sticking.charAt(0) === sticking.charAt(0).toLowerCase() && !sticking.includes("+"));
+                        let updated = sticking.replace(/[RrLl]/g, isGhost ? newBase.toLowerCase() : newBase);
+                        fullPhrase[i][1] = updated;
+                        lastHand = newBase;
+                        handCount = 1;
+                    }
+                } else if (sticking === "K" || sticking === "") {
+                    // 手を使わない打撃または休符で手の連続カウントをリセット
+                    handCount = 0;
+                    lastHand = "";
+                }
+
+                // --- Kick Guard (足) ---
+                if (hasKick) {
+                    kickCount++;
+                    if (kickCount > 2) {
+                        // 3連打目のキックを削除し、スネアのゴーストに変更してリズムを補完
+                        let updatedSticking = sticking.replace("+K", "").replace("K", "");
+                        
+                        // もともとキック専用音（F）だった場合
+                        if (fullPhrase[i][0] === "F" || fullPhrase[i][0] === "f") {
+                            fullPhrase[i][0] = "c"; // スネアに変更
+                            // 手順を補完（直前の手と逆にする）
+                            let nextHand = (lastHand === "R") ? "l" : "r";
+                            fullPhrase[i][1] = nextHand;
+                            lastHand = nextHand.toUpperCase();
+                            handCount = 1;
+                        } else {
+                            // スネア+キックなどだった場合はキックの文字だけ消す
+                            fullPhrase[i][1] = updatedSticking;
+                        }
+                        kickCount = 0; // リセット
+                    }
+                } else {
+                    kickCount = 0;
+                }
+            }
+            return fullPhrase;
+        }
+
         function slotToNotesAndWords(slot) {
             let notes = "";
             let wordsArr = [];
-
             const processNote = (s, is16th = false, is32nd = false) => {
                 let [note, sticking, dyn, duration] = s;
                 if (note.includes("z")) return note + (duration || (is16th ? "/" : is32nd ? "//" : ""));
-
-                let prefix = "";
-                if (dyn === 'A') {
-                    prefix = "!ff!!>!"; 
-                    wordsArr.push(sticking.toUpperCase());
-                } else if (dyn === 'G') {
-                    prefix = "!ppp!";
-                    wordsArr.push(sticking.toLowerCase());
-                } else {
-                    prefix = "!f!";
-                    wordsArr.push(sticking.toUpperCase());
-                }
-                
+                let prefix = (dyn === 'A') ? "!ff!!>!" : (dyn === 'G' ? "!ppp!" : "!f!");
+                if (sticking) wordsArr.push(sticking);
                 let suffix = duration || (is16th ? "/" : "");
                 return prefix + note + suffix;
             };
-
-            if (slot.length === 1) {
-                notes = processNote(slot[0]);
-            } else if (slot[0].length === 4) {
-                notes = slot.map(s => processNote(s)).join("");
-            } else if (slot.length === 6) {
-                let noteArr = slot.map(s => processNote(s, true));
-                notes = "(6" + noteArr.join("");
-            } else if (slot.length === 3) {
-                let noteArr = slot.map(s => processNote(s, false));
-                notes = "(3" + noteArr.join("");
-            } else if (slot.length === 2 || slot.length === 4) {
-                let is16th = slot.length === 4;
-                let noteArr = slot.map(s => processNote(s, is16th));
-                notes = noteArr.join("");
-            } else {
-                notes = "z2";
-            }
-            
+            if (slot.length === 1) notes = processNote(slot[0]);
+            else if (slot[0].length === 4) notes = slot.map(s => processNote(s)).join("");
+            else if (slot.length === 6) notes = "(6" + slot.map(s => processNote(s, true)).join("");
+            else if (slot.length === 3) notes = "(3" + slot.map(s => processNote(s, false)).join("");
+            else if (slot.length === 2 || slot.length === 4) notes = slot.map(s => processNote(s, slot.length === 4)).join("");
+            else notes = "z2";
             return { notes, words: wordsArr.join(" ") };
         }
 
         function skeletonToAbc(skeleton, difficulty, feel, isTradeMode) {
-            let notesStr = "";
-            let wordsStr = "w: ";
-            
             if (!skeleton) return "";
-
+            let flatPhrase = [];
             for (let bar = 0; bar < 4; bar++) {
-                let barNotes = [];
-                let barWords = [];
-
                 for (let beat = 0; beat < 4; beat++) {
                     const { key, isCrash, variationIndex } = skeleton[bar][beat];
                     const feelConfig = MOTIF_LIBRARY[feel];
-                    
                     let keyToUse = key;
-                    
-                    // --- Extreme Glitch Logic ---
                     if (difficulty === 'extreme' && feel === 'straight' && key === 'rest') {
-                        let nextBar = bar;
-                        let nextBeat = beat + 1;
+                        let nextBar = bar, nextBeat = beat + 1;
                         if (nextBeat > 3) { nextBar++; nextBeat = 0; }
-                        
-                        const nextExists = nextBar < 4;
-                        const nextIsAccent = nextExists && skeleton[nextBar][nextBeat].key !== 'rest';
-                        
-                        if (variationIndex % 20 === 0) {
-                            keyToUse = 'glitch_triplet';
-                        } else if (nextIsAccent) {
-                            keyToUse = 'glitch_lead';
-                        } else {
-                            keyToUse = 'glitch_fill';
-                        }
+                        const nextIsAccent = nextBar < 4 && skeleton[nextBar][nextBeat].key !== 'rest';
+                        if (variationIndex % 20 === 0) keyToUse = 'glitch_triplet';
+                        else if (nextIsAccent) keyToUse = 'glitch_lead';
+                        else keyToUse = 'glitch_fill';
                     }
-
                     const keyConfig = feelConfig[keyToUse] || feelConfig['rest'];
-                    let targetDifficulty = difficulty;
-                    if (feel === 'swing' && difficulty === 'extreme') targetDifficulty = 'advanced';
-                    
-                    const motifOptions = keyConfig[targetDifficulty] || keyConfig['extreme'] || keyConfig['basic'];
+                    let targetDiff = (feel === 'swing' && difficulty === 'extreme') ? 'advanced' : difficulty;
+                    const motifOptions = keyConfig[targetDiff] || keyConfig['extreme'] || keyConfig['basic'];
                     let motifDef = motifOptions[variationIndex % motifOptions.length];
-                    
-                    // タム出現率の制限
-                    const hasToms = motifDef.some(step => step.some(part => part === 'e' || part === 'A'));
-                    if (hasToms && (variationIndex % 10 >= 4)) {
+                    if (motifDef.some(s => s[0] === 'e' || s[0] === 'A') && (variationIndex % 10 >= 4)) {
                         motifDef = keyConfig['basic'][variationIndex % keyConfig['basic'].length];
                     }
-
                     let motif = JSON.parse(JSON.stringify(motifDef));
-                    
                     if (difficulty !== 'basic' && isCrash) {
                         for (let i = 0; i < motif.length; i++) {
-                            if (motif[i][2] === 'A') { 
-                                motif[i][0] = "[!style=x!fF]"; 
-                                const currentSticking = motif[i][1];
-                                if (currentSticking && !currentSticking.includes("K")) {
-                                    motif[i][1] = currentSticking + "+K";
-                                } else if (!currentSticking) {
-                                    motif[i][1] = "R+K";
-                                }
-                                break; 
+                            if (motif[i][2] === 'A') {
+                                motif[i][0] = "[!style=x!fF]";
+                                motif[i][1] = (motif[i][1] || "R") + "+K";
+                                break;
                             }
                         }
                     }
-
-                    let { notes, words } = slotToNotesAndWords(motif);
-                    barNotes.push(notes);
-                    if (words) barWords.push(words);
+                    flatPhrase.push({ motif, isBarEnd: (beat === 3) });
                 }
-
-                notesStr += barNotes.join(" ") + " | ";
-                wordsStr += barWords.join(" ") + " | ";
             }
-
+            let allSteps = [];
+            flatPhrase.forEach(m => allSteps.push(...m.motif));
+            applyStickingGuard(allSteps);
+            let notesStr = "";
+            let wordsStr = "w: ";
+            let stepIdx = 0;
+            flatPhrase.forEach(m => {
+                let motifToProcess = [];
+                for(let i=0; i<m.motif.length; i++) motifToProcess.push(allSteps[stepIdx++]);
+                let { notes, words } = slotToNotesAndWords(motifToProcess);
+                notesStr += notes + " ";
+                if (words) wordsStr += words + " ";
+                if (m.isBarEnd) { notesStr += "| "; wordsStr += "| "; }
+            });
             if (isTradeMode) {
-                notesStr = notesStr.slice(0, -3) + " |\n";
-                wordsStr += "\n";
-                const emptyBar = "z2 z2 z2 z2";
-                notesStr += `${emptyBar} | ${emptyBar} | ${emptyBar} | ${emptyBar} |] `;
-                wordsStr += " | | | |";
-            } else {
-                notesStr = notesStr.slice(0, -3) + " |] ";
-            }
-
+                notesStr = notesStr.slice(0, -2) + "\nz2 z2 z2 z2 | z2 z2 z2 z2 | z2 z2 z2 z2 | z2 z2 z2 z2 |] ";
+                wordsStr += "\n | | | |";
+            } else notesStr = notesStr.slice(0, -2) + "|] ";
             return notesStr + "\n" + wordsStr;
         }
 
@@ -297,49 +307,33 @@
             const [skeleton, setSkeleton] = useState(null);
             const [abcString, setAbcString] = useState("");
             const [visualObj, setVisualObj] = useState(null);
-            
             const scoreRef = useRef(null);
             const audioContainerRef = useRef(null);
-            const synthControlRef = useRef(null);
-
             const unlockAudio = async () => {
                 const context = ABCJS.synth.activeAudioContext();
-                if (context && context.state === 'suspended') {
-                    await context.resume();
-                }
+                if (context && context.state === 'suspended') await context.resume();
             };
-
             useEffect(() => {
                 generateNewSkeleton();
-                if (feel === 'swing' && difficulty === 'extreme') {
-                    setDifficulty('advanced');
-                }
+                if (feel === 'swing' && difficulty === 'extreme') setDifficulty('advanced');
             }, [feel]);
-
             const generateNewSkeleton = () => {
                 unlockAudio();
                 const keys = Object.keys(MOTIF_LIBRARY[feel]).filter(k => k.startsWith('acc') || k === 'rest');
                 const weightedKeys = [];
-                keys.forEach(k => {
-                    if (k === 'rest') weightedKeys.push(k, k); 
-                    else weightedKeys.push(k, k, k);
-                });
-
+                keys.forEach(k => k === 'rest' ? weightedKeys.push(k, k) : weightedKeys.push(k, k, k));
                 let newSkeleton = [];
                 for (let bar = 0; bar < 4; bar++) {
                     let barSkeleton = [];
                     for (let beat = 0; beat < 4; beat++) {
                         let key = weightedKeys[Math.floor(Math.random() * weightedKeys.length)];
-                        let crashProb = (beat === 0 && key !== 'rest') ? (bar === 0 ? 0.8 : 0.4) : 0;
-                        let isCrash = Math.random() < crashProb;
-                        let variationIndex = Math.floor(Math.random() * 100);
-                        barSkeleton.push({ key, isCrash, variationIndex });
+                        let isCrash = (beat === 0 && key !== 'rest') ? (bar === 0 ? 0.8 : 0.4) : 0;
+                        barSkeleton.push({ key, isCrash: Math.random() < isCrash, variationIndex: Math.floor(Math.random() * 100) });
                     }
                     newSkeleton.push(barSkeleton);
                 }
                 setSkeleton(newSkeleton);
             };
-
             useEffect(() => {
                 if (skeleton) {
                     const body = skeletonToAbc(skeleton, difficulty, feel, isTradeMode);
@@ -348,91 +342,54 @@
                     }
                 }
             }, [skeleton, difficulty, feel, isTradeMode]);
-
             useEffect(() => {
                 if (abcString && scoreRef.current) {
-                    const rendered = ABCJS.renderAbc(scoreRef.current, abcString, {
-                        responsive: 'resize',
-                        add_classes: true,
-                        staffwidth: 900,
-                        scale: 1.3, 
-                        paddingtop: 15,
-                        paddingbottom: 40
-                    });
+                    const rendered = ABCJS.renderAbc(scoreRef.current, abcString, { responsive: 'resize', add_classes: true, staffwidth: 900, scale: 1.3, paddingtop: 15, paddingbottom: 40 });
                     setVisualObj(rendered[0]);
                 }
             }, [abcString]);
-
             useEffect(() => {
                 if (visualObj && ABCJS.synth.supportsAudio() && audioContainerRef.current) {
                     audioContainerRef.current.innerHTML = "";
                     const controller = new ABCJS.synth.SynthController();
-                    controller.load(audioContainerRef.current, null, {
-                        displayLoop: true, displayRestart: true, displayPlay: true, displayProgress: true, displayWarp: true
-                    });
+                    controller.load(audioContainerRef.current, null, { displayLoop: true, displayRestart: true, displayPlay: true, displayProgress: true, displayWarp: true });
                     controller.disable(true);
-                    const synth = new ABCJS.synth.CreateSynth();
-                    synth.init({ visualObj: visualObj }).then(() => {
+                    new ABCJS.synth.CreateSynth().init({ visualObj: visualObj }).then(() => {
                         controller.setTune(visualObj, false, { chordsOff: true, midiChannel: 10 });
                     }).catch(console.error);
-                    synthControlRef.current = controller;
                 }
             }, [visualObj]);
-
-            const handleDiffChange = (newDiff) => {
-                unlockAudio();
-                setDifficulty(newDiff);
-            };
-
             return (
                 <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-3 md:p-6 mt-2 md:mt-4">
-                    <div className="text-center mb-4 md:mb-6">
-                        <h1 className="text-2xl md:text-3xl font-bold text-zinc-800">D.R.O.P. Solo Etude</h1>
-                    </div>
-
+                    <div className="text-center mb-4 md:mb-6"><h1 className="text-2xl md:text-3xl font-bold text-zinc-800">D.R.O.P. Solo Etude</h1></div>
                     <div className="flex flex-col gap-4 mb-6 bg-zinc-50 p-3 md:p-4 rounded-lg border border-zinc-200">
                         <div className="flex flex-wrap justify-center gap-3">
                             <div className="flex bg-white rounded-md border border-zinc-300 overflow-hidden shadow-sm">
                                 <button onClick={() => { unlockAudio(); setFeel('straight'); }} className={`px-4 py-2 text-sm font-medium transition-colors ${feel === 'straight' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>Straight</button>
                                 <button onClick={() => { unlockAudio(); setFeel('swing'); }} className={`px-4 py-2 text-sm font-medium transition-colors ${feel === 'swing' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>Swing</button>
                             </div>
-
                             <div className="flex bg-white rounded-md border border-zinc-300 overflow-hidden shadow-sm">
-                                <button onClick={() => handleDiffChange('basic')} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === 'basic' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>1. Basic</button>
-                                <button onClick={() => handleDiffChange('advanced')} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === 'advanced' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>2. Orchestration</button>
-                                {feel === 'straight' && (
-                                    <button onClick={() => handleDiffChange('extreme')} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === 'extreme' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>3. Extreme (Glitch)</button>
-                                )}
+                                <button onClick={() => { unlockAudio(); setDifficulty('basic'); }} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === 'basic' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>1. Basic</button>
+                                <button onClick={() => { unlockAudio(); setDifficulty('advanced'); }} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === 'advanced' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>2. Orchestration</button>
+                                {feel === 'straight' && <button onClick={() => { unlockAudio(); setDifficulty('extreme'); }} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === 'extreme' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>3. Extreme (Glitch)</button>}
                             </div>
                         </div>
-
                         <div className="flex flex-wrap justify-center gap-3 items-center">
                             <label className="flex items-center space-x-2 cursor-pointer bg-white px-4 py-2 rounded-md border border-zinc-300 shadow-sm hover:bg-zinc-50 transition-colors">
                                 <input type="checkbox" checked={isTradeMode} onChange={(e) => setIsTradeMode(e.target.checked)} className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500" />
                                 <span className="text-xs md:text-sm font-medium text-zinc-700">🎧 4-Bar Trade</span>
                             </label>
-                            <button onClick={generateNewSkeleton} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md shadow-sm transition-colors text-sm">
-                                🔄 New Phrasing
-                            </button>
+                            <button onClick={generateNewSkeleton} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md shadow-sm transition-colors text-sm">🔄 New Phrasing</button>
                         </div>
                     </div>
-
-                    <div className="bg-white border-2 border-zinc-100 rounded-lg p-2 md:p-4 overflow-x-auto min-h-[150px]">
-                        <div ref={scoreRef}></div>
-                    </div>
-
-                    <div className="mt-4 bg-slate-200 border border-slate-300 rounded-lg p-2 w-full max-w-2xl mx-auto shadow-inner">
-                        <div ref={audioContainerRef} className="w-full"></div>
-                    </div>
-
+                    <div className="bg-white border-2 border-zinc-100 rounded-lg p-2 md:p-4 overflow-x-auto min-h-[150px]"><div ref={scoreRef}></div></div>
+                    <div className="mt-4 bg-slate-200 border border-slate-300 rounded-lg p-2 w-full max-w-2xl mx-auto shadow-inner"><div ref={audioContainerRef} className="w-full"></div></div>
                     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
                             <h3 className="font-bold text-indigo-900 mb-2 border-b border-indigo-200 pb-1 text-sm">💡 改良された Sticking ロジック</h3>
-                            <ul className="text-xs text-indigo-800 space-y-2">
-                                <li><strong>同一楽器でのダブル:</strong> <code>rr</code> や <code>ll</code> の手順が発生する際は、必ず同じ太鼓（スネアのみ、タムのみ等）を叩くよう修正されました。</li>
-                                <li><strong>合理的な移動:</strong> タムやスネア間を移動する際はシングルストロークになるよう調整し、演奏の物理的な無理を排除しました。</li>
-                                <li><strong>32分音符のダブル:</strong> 非常に速い32分音符部分は、リバウンドを活かせるようダブルの手順に固定されています。</li>
-                            </ul>
+                            <p className="text-xs text-indigo-800">
+                                <strong>「連打は2回まで」:</strong> 手（R/L）だけでなく、<strong>足（K）も3連打以上にならないよう</strong>制御を追加しました。キックが3回続きそうな箇所は、システムが自動的にスネアのゴーストノートに置き換えて演奏性を確保します。
+                            </p>
                         </div>
                         <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-4">
                             <h3 className="font-bold text-zinc-800 mb-2 border-b border-indigo-200 pb-1 text-sm">🥁 手順の読み方</h3>
