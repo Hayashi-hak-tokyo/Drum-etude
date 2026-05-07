@@ -40,6 +40,7 @@
         const { useState, useEffect, useRef } = React;
 
         // --- MOTIF LIBRARY ---
+        // 手順の安全性: ダブル(RR, LL)は必ず同一楽器(e, c, A, F)になるよう修正
         const MOTIF_LIBRARY = {
             straight: {
                 rest: {
@@ -47,30 +48,27 @@
                     advanced: [[["z2", "", ""]]],
                     extreme: [[["z2", "", ""]]]
                 },
-                // --- グリッチ専用モチーフ (Extremeの休符埋め用) ---
                 glitch_fill: {
                     extreme: [
-                        [["c", "r", "G"], ["F", "K", "K"], ["F", "K", "K"], ["c", "l", "G"]], // rKKl
-                        [["F", "K", "K"], ["c", "r", "G"], ["c", "l", "G"], ["F", "K", "K"]], // KrrK
-                        [["c", "r", "G"], ["c", "l", "G"], ["F", "K", "K"], ["F", "K", "K"]], // rrKK
-                        [["c", "r", "G"], ["F", "K", "K"], ["c", "l", "G"], ["F", "K", "K"]]  // rKrK
+                        [["c", "r", "G"], ["F", "K", "K"], ["F", "K", "K"], ["c", "l", "G"]], 
+                        [["F", "K", "K"], ["c", "r", "G"], ["c", "l", "G"], ["F", "K", "K"]], 
+                        [["c", "r", "G"], ["c", "l", "G"], ["F", "K", "K"], ["F", "K", "K"]], 
+                        [["c", "r", "G"], ["F", "K", "K"], ["c", "l", "G"], ["F", "K", "K"]]  
                     ]
                 },
                 glitch_lead: {
                     extreme: [
-                        // 32nd notes are now explicitly DOUBLE STROKES (rr, ll)
-                        [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K", "/"], ["F", "K", "K", "/"]], // rrllKK
-                        [["F", "K", "K", "/"], ["F", "K", "K", "/"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"]], // KKrrll
-                        [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["c", "r", "G", "/"], ["c", "l", "G", "/"]]  // rrllrl
+                        [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K", "/"], ["F", "K", "K", "/"]], 
+                        [["F", "K", "K", "/"], ["F", "K", "K", "/"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"]], 
+                        [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["c", "r", "G", "/"], ["c", "l", "G", "/"]]  
                     ]
                 },
                 glitch_triplet: {
                     extreme: [
-                        [["c", "r", "G"], ["F", "K", "K"], ["F", "K", "K"]], // (3rKK
-                        [["F", "K", "K"], ["c", "r", "G"], ["c", "l", "G"]]  // (3Krr
+                        [["c", "r", "G"], ["F", "K", "K"], ["F", "K", "K"]], 
+                        [["F", "K", "K"], ["c", "r", "G"], ["c", "l", "G"]]  
                     ]
                 },
-                // --- アクセントモチーフ ---
                 acc_1: {
                     basic: [[["c", "R", "A"], ["c", "L", "G"], ["c", "R", "G"], ["c", "L", "G"]]],
                     advanced: [
@@ -80,9 +78,8 @@
                     ],
                     extreme: [
                         [["c", "R", "A"], ["c", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]], 
-                        [["c", "R", "A"], ["c", "R", "G"], ["c", "L", "G"], ["c", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]],
+                        [["c", "R", "A"], ["c", "R", "G"], ["c", "L", "G"], ["c", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]], // rr ll on Snare
                         [["c", "R", "A"], ["F", "K", "K"]], 
-                        // Modified to doubles: R rr ll KK
                         [["c", "R", "A", "/"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K", "/"]]
                     ]
                 },
@@ -94,9 +91,8 @@
                         [["e", "R", "G"], ["A", "L", "A"], ["e", "R", "G"], ["c", "L", "G"]]
                     ],
                     extreme: [
-                        [["F", "K", "K"], ["c", "L", "A"], ["c", "R", "G"], ["c", "R", "G"]],
-                        [["F", "K", "K"], ["e", "L", "A"], ["c", "R", "G"], ["A", "L", "G"], ["c", "R", "G"], ["e", "L", "G"]],
-                        // KK L rr ll
+                        [["F", "K", "K"], ["c", "L", "A"], ["c", "R", "G"], ["c", "R", "G"]], // RR on Snare
+                        [["F", "K", "K"], ["e", "L", "A"], ["c", "R", "G"], ["A", "L", "G"], ["c", "R", "G"], ["e", "L", "G"]], // RLRL Singles
                         [["F", "K", "K", "/"], ["c", "L", "A", "/"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"]]
                     ]
                 },
@@ -110,8 +106,7 @@
                     extreme: [
                         [["c", "R", "G"], ["c", "L", "G"], ["c", "R", "A"], ["c", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]],
                         [["e", "R", "G"], ["c", "L", "G"], ["F", "K", "K"], ["A", "R", "A"], ["F", "K", "K"], ["c", "L", "G"]],
-                        // rr ll R KK
-                        [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["c", "R", "A", "/"], ["F", "K", "K", "/"]]
+                        [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["e", "l", "G", "/"], ["A", "R", "A", "/"], ["F", "K", "K", "/"]]
                     ]
                 },
                 acc_4: {
@@ -122,8 +117,8 @@
                         [["e", "R", "G"], ["c", "L", "G"], ["A", "R", "G"], ["e", "L", "A"]]
                     ],
                     extreme: [
-                        [["c", "R", "G"], ["c", "R", "G"], ["e", "L", "G"], ["A", "L", "G"], ["F", "K", "K"], ["c", "L", "A"]],
-                        [["F", "K", "K"], ["F", "K", "K"], ["c", "R", "G"], ["c", "L", "A"]]
+                        [["c", "R", "G"], ["c", "R", "G"], ["A", "L", "G"], ["A", "L", "G"], ["F", "K", "K"], ["c", "L", "A"]], // Corrected cross-drum double
+                        [["F", "K", "K"], ["F", "K", "K"], ["e", "R", "G"], ["A", "L", "A"]]
                     ]
                 }
             },
@@ -250,6 +245,7 @@
                     const motifOptions = keyConfig[targetDifficulty] || keyConfig['extreme'] || keyConfig['basic'];
                     let motifDef = motifOptions[variationIndex % motifOptions.length];
                     
+                    // タム出現率の制限
                     const hasToms = motifDef.some(step => step.some(part => part === 'e' || part === 'A'));
                     if (hasToms && (variationIndex % 10 >= 4)) {
                         motifDef = keyConfig['basic'][variationIndex % keyConfig['basic'].length];
@@ -431,11 +427,11 @@
 
                     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
-                            <h3 className="font-bold text-indigo-900 mb-2 border-b border-indigo-200 pb-1 text-sm">💡 Extremeモードのロジック</h3>
+                            <h3 className="font-bold text-indigo-900 mb-2 border-b border-indigo-200 pb-1 text-sm">💡 改良された Sticking ロジック</h3>
                             <ul className="text-xs text-indigo-800 space-y-2">
-                                <li><strong>32分音符はダブル:</strong> <code>rr</code> や <code>ll</code> の手順に固定され、高速でも滑らかに演奏可能です。</li>
-                                <li><strong>グリッチ・フィラー:</strong> 休符部分がスネアとキックの細かい手順で埋められます。</li>
-                                <li><strong>リードイン:</strong> アクセント直前の拍にはダブルを多用した推進力のあるグリッチが挿入されます。</li>
+                                <li><strong>同一楽器でのダブル:</strong> <code>rr</code> や <code>ll</code> の手順が発生する際は、必ず同じ太鼓（スネアのみ、タムのみ等）を叩くよう修正されました。</li>
+                                <li><strong>合理的な移動:</strong> タムやスネア間を移動する際はシングルストロークになるよう調整し、演奏の物理的な無理を排除しました。</li>
+                                <li><strong>32分音符のダブル:</strong> 非常に速い32分音符部分は、リバウンドを活かせるようダブルの手順に固定されています。</li>
                             </ul>
                         </div>
                         <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-4">
