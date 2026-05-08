@@ -93,7 +93,8 @@
                 glitch_triplet: {
                     extreme: [
                         [["c", "r", "G"], ["c", "l", "G"], ["F", "K", "K"]], 
-                        [["F", "K", "K"], ["c", "r", "G"], ["c", "l", "G"]]
+                        [["F", "K", "K"], ["c", "r", "G"], ["c", "l", "G"]], 
+                        [["c", "r", "G"], ["F", "K", "K"], ["c", "l", "G"]]  
                     ]
                 },
                 acc_1: {
@@ -204,10 +205,10 @@
 
                 if (hand !== "") {
                     if (hand === lastHand) {
-                        // --- 修正: ダブル検出時は、今回(2打目)だけでなく前回(1打目)もアクセントを解除 ---
-                        hit[2] = 'G'; // 今回をゴースト化
+                        // ダブル検出時は、今回(2打目)だけでなく前回(1打目)もアクセントを解除（ダブルは原則アクセントなし）
+                        hit[2] = 'G'; 
                         if (lastHandIdx !== -1) {
-                            fullPhrase[lastHandIdx][2] = 'G'; // 前回を遡ってゴースト化
+                            fullPhrase[lastHandIdx][2] = 'G';
                         }
 
                         // 移動ダブル禁止ロジック
@@ -278,7 +279,7 @@
                 let displaySticking = sticking;
 
                 if (displaySticking) {
-                    // --- 修正: 手(R or L)がある場合は K を省略して表記のズレを防ぐ ---
+                    // 手(R or L)がある場合は K を省略して表記のズレを防ぐ
                     if (/[RL]/i.test(displaySticking)) {
                         displaySticking = displaySticking.replace(/\+?K/gi, "");
                     }
@@ -294,10 +295,21 @@
                 let suffix = duration || (force16th ? "/" : "");
                 return prefix + note + suffix;
             };
+
             if (slot.length === 1) {
                 notes = processNote(slot[0]);
             } else if (feel === 'swing') {
                 notes = "(3" + slot.map(s => processNote(s)).join("");
+            } else if (slot.length === 3) {
+                // --- 修正: Extremeの三連符の「3」を表示 ---
+                // Straightフィールにおいて、Orchestrationの「8分+16分2つ」は三連符にしない
+                // それ以外の3要素（Extremeの三連グリッチ等）は (3 を付与
+                const has16thSubDivision = slot.some(s => s[3] === "/");
+                if (has16thSubDivision) {
+                    notes = slot.map(s => processNote(s)).join("");
+                } else {
+                    notes = "(3" + slot.map(s => processNote(s)).join("");
+                }
             } else {
                 notes = slot.map(s => processNote(s, slot.length === 4)).join("");
             }
