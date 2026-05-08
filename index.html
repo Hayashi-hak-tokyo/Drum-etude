@@ -276,11 +276,20 @@
                 let velocity = (dyn === 'A') ? "!ff!" : "!ppp!";
                 let prefix = (dyn === 'A') ? "!>!" + velocity : velocity;
                 let displaySticking = sticking;
-                if (dyn !== 'A' && displaySticking) {
-                    displaySticking = displaySticking.toLowerCase().replace("+k", "").replace("k", ""); 
-                } else if (displaySticking) {
-                    displaySticking = displaySticking.toUpperCase();
+
+                if (displaySticking) {
+                    // --- 修正: 手(R or L)がある場合は K を省略して表記のズレを防ぐ ---
+                    if (/[RL]/i.test(displaySticking)) {
+                        displaySticking = displaySticking.replace(/\+?K/gi, "");
+                    }
+
+                    if (dyn !== 'A') {
+                        displaySticking = displaySticking.toLowerCase();
+                    } else {
+                        displaySticking = displaySticking.toUpperCase();
+                    }
                 }
+
                 wordsArr.push(displaySticking || "_");
                 let suffix = duration || (force16th ? "/" : "");
                 return prefix + note + suffix;
