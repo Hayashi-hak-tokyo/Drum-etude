@@ -25,26 +25,26 @@
         #score-container svg { width: 100%; height: auto; display: block; }
         .abcjs-inline-audio { max-width: 100%; padding: 10px; border-radius: 8px; }
 
-        /* --- 修正: 楽譜内の不要な記号のみを非表示にし、プレイヤーのUIを保護 --- */
+        /* 楽譜内の不要なテキスト（ff, ppp等）や装飾記号を非表示にする */
         #score-container svg .abcjs-decoration, 
         #score-container svg .abcjs-dynamics, 
         #score-container svg .abcjs-annotation {
             display: none !important;
         }
         
-        /* アクセント記号(articulation)を赤くする */
+        /* アクセント記号(articulation)のみを表示し、赤くして視認性を高める */
         .abcjs-articulation {
             fill: #ef4444 !important;
             stroke: #ef4444 !important;
         }
 
-        /* --- オーディオプレイヤーの視認性向上 --- */
+        /* オーディオプレイヤーのBPMなどの視認性向上 */
         .abcjs-inline-audio .abcjs-tempo-wrapper,
         .abcjs-inline-audio .abcjs-midi-tempo,
         .abcjs-inline-audio .abcjs-label {
-            color: #18181b !important; /* 濃いグレー(zinc-900)で確実に見えるように */
+            color: #18181b !important;
             font-weight: 600 !important;
-            display: inline-block !important; /* 非表示を解除 */
+            display: inline-block !important;
         }
         
         button { user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -150,28 +150,27 @@
                     basic: [[["z2", "", ""]]], 
                     advanced: [
                         [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["c", "l", "G"]],
-                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["e", "l", "G"]],
-                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["A", "l", "G"]]
+                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["e", "l", "G"]]
                     ] 
                 },
                 acc_1: {
                     basic: [[["c", "R", "A"], ["c", "L", "G"], ["c", "R", "G"]]],
                     advanced: [
-                        [["c", "R", "A"], ["A", "l", "G"], ["c", "R", "G"]],
+                        [["c", "R", "A"], ["c", "l", "G"], ["A", "r", "G"]], 
                         [["e", "R", "A"], ["c", "L", "G"], ["A", "r", "G"]]
                     ]
                 },
                 acc_2: {
                     basic: [[["c", "L", "G"], ["c", "R", "A"], ["c", "L", "G"]]],
                     advanced: [
-                        [["A", "l", "G"], ["c", "R", "A"], ["c", "L", "G"]],
-                        [["c", "L", "G"], ["e", "R", "A"], ["A", "l", "G"]]
+                        [["A", "r", "G"], ["c", "l", "A"], ["c", "R", "G"]],
+                        [["c", "L", "G"], ["e", "R", "A"], ["e", "l", "G"]]
                     ]
                 },
                 acc_3: {
                     basic: [[["c", "R", "G"], ["c", "L", "G"], ["c", "R", "A"]]],
                     advanced: [
-                        [["c", "R", "G"], ["A", "l", "G"], ["c", "R", "A"]],
+                        [["c", "R", "G"], ["c", "L", "G"], ["A", "R", "A"]],
                         [["A", "r", "G"], ["c", "L", "G"], ["e", "R", "A"]]
                     ]
                 },
@@ -179,7 +178,7 @@
                     basic: [[["c", "L", "G"], ["c", "R", "G"], ["c", "L", "A"]]],
                     advanced: [
                         [["c", "L", "G"], ["A", "R", "G"], ["c", "L", "A"]],
-                        [["A", "l", "G"], ["c", "R", "G"], ["e", "L", "A"]]
+                        [["c", "l", "G"], ["c", "R", "G"], ["e", "L", "A"]]
                     ]
                 }
             }
@@ -189,6 +188,7 @@
         function applyStickingGuard(fullPhrase) {
             let lastHand = "";
             let lastActualPitch = ""; 
+            let lastHandIdx = -1; // ダブルの1打目を遡って修正するためのインデックス
             let handCount = 0;
             let kickCount = 0;
 
@@ -204,7 +204,13 @@
 
                 if (hand !== "") {
                     if (hand === lastHand) {
-                        hit[2] = 'G'; 
+                        // --- 修正: ダブル検出時は、今回(2打目)だけでなく前回(1打目)もアクセントを解除 ---
+                        hit[2] = 'G'; // 今回をゴースト化
+                        if (lastHandIdx !== -1) {
+                            fullPhrase[lastHandIdx][2] = 'G'; // 前回を遡ってゴースト化
+                        }
+
+                        // 移動ダブル禁止ロジック
                         let targetPitch = lastActualPitch;
                         if (!targetPitch.includes("style=x")) {
                             if (!hit[0].includes("z")) hit[0] = targetPitch;
@@ -216,14 +222,19 @@
                             hit[1] = hit[1].replace(/[RrLl]/g, newBase.toLowerCase());
                             lastHand = newBase;
                             handCount = 1;
+                            lastHandIdx = i;
+                        } else {
+                            lastHandIdx = i;
                         }
                     } else {
                         handCount = 1;
                         lastHand = hand;
+                        lastHandIdx = i;
                     }
                 } else if (sticking === "K" || sticking === "") {
                     handCount = 0;
                     lastHand = "";
+                    lastHandIdx = -1;
                 }
 
                 if (!hit[0].includes("z")) {
@@ -256,29 +267,24 @@
         function slotToNotesAndWords(slot, feel) {
             let notes = "";
             let wordsArr = [];
-            
             const processNote = (s, force16th = false) => {
                 let [note, sticking, dyn, duration] = s;
                 if (note.includes("z")) {
                     wordsArr.push("_");
                     return note + (duration || (force16th ? "/" : ""));
                 }
-                
                 let velocity = (dyn === 'A') ? "!ff!" : "!ppp!";
                 let prefix = (dyn === 'A') ? "!>!" + velocity : velocity;
-                
                 let displaySticking = sticking;
                 if (dyn !== 'A' && displaySticking) {
                     displaySticking = displaySticking.toLowerCase().replace("+k", "").replace("k", ""); 
                 } else if (displaySticking) {
                     displaySticking = displaySticking.toUpperCase();
                 }
-
                 wordsArr.push(displaySticking || "_");
                 let suffix = duration || (force16th ? "/" : "");
                 return prefix + note + suffix;
             };
-            
             if (slot.length === 1) {
                 notes = processNote(slot[0]);
             } else if (feel === 'swing') {
@@ -398,7 +404,7 @@
                             }
                         }
                         let isCrash = (beat === 0 && key !== 'rest') ? (bar === 0 ? 0.8 : 0.4) : 0;
-                        barSkeleton.push({ key, isCrash: Math.random() < isCrash, variationIndex: Math.floor(Math.random() * 100) });
+                        barSkeleton.push({ key, isCrash, variationIndex: Math.floor(Math.random() * 100) });
                     }
                     newSkeleton.push(barSkeleton);
                 }
