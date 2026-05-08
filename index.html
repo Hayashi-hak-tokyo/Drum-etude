@@ -25,7 +25,7 @@
         #score-container svg { width: 100%; height: auto; display: block; }
         .abcjs-inline-audio { max-width: 100%; padding: 10px; border-radius: 8px; }
 
-        /* ダイナミクス（f, p）は非表示、アクセント記号(articulation)は表示 */
+        /* ダイナミクス（ff, ppp）は再生用なので非表示にし、アクセント記号(articulation)は表示 */
         .abcjs-decoration, .abcjs-dynamics {
             display: none !important;
         }
@@ -37,6 +37,23 @@
         }
         
         button { user-select: none; -webkit-tap-highlight-color: transparent; }
+
+        /* --- 印刷/PDF用設定 --- */
+        @media print {
+            body { background-color: white; padding: 0; margin: 0; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .printable-area { 
+                box-shadow: none !important; 
+                border: none !important; 
+                width: 100% !important; 
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            #score-container svg { width: 100% !important; }
+            .page-break { page-break-before: always; }
+        }
     </style>
 </head>
 <body class="p-2 md:p-8 text-zinc-800">
@@ -46,11 +63,12 @@
         const { useState, useEffect, useRef } = React;
 
         // --- MOTIF LIBRARY ---
+        // A (Floor Tom) はアクセント属性 'A' を外し、ゴースト属性 'G' で使用
         const MOTIF_LIBRARY = {
             straight: {
                 rest: {
                     basic: [[["z2", "", ""]]],
-                    advanced: [[["z2", "", ""]]],
+                    advanced: [[["[!style=x!fF]", "R+K", "A", "2"]]],
                     extreme: [[["z2", "", ""]]]
                 },
                 glitch_fill: {
@@ -72,7 +90,9 @@
                     basic: [[["c", "R", "A"], ["c", "L", "G"], ["c", "R", "G"], ["c", "L", "G"]]],
                     advanced: [
                         [["c", "R", "A"], ["c", "L", "G"], ["c", "R", "G"], ["c", "L", "G"]],
-                        [["c", "R", "A"], ["e", "L", "G"], ["c", "R", "G"], ["c", "L", "G"]]
+                        [["e", "R", "A"], ["A", "l", "G"], ["c", "R", "G"], ["c", "L", "G"]],
+                        [["c", "R", "A"], ["A", "l", "G"], ["A", "r", "G"], ["c", "L", "G"]],
+                        [["e", "R", "A"], ["c", "L", "G"], ["A", "r", "G"], ["A", "l", "G"]]
                     ],
                     extreme: [
                         [["c", "R", "A"], ["c", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]], 
@@ -84,7 +104,9 @@
                     basic: [[["c", "R", "G"], ["c", "L", "A"], ["c", "R", "G"], ["c", "L", "G"]]],
                     advanced: [
                         [["c", "R", "G"], ["c", "L", "A"], ["c", "R", "G"], ["c", "L", "G"]],
-                        [["e", "R", "G"], ["c", "L", "A"], ["c", "R", "G"], ["c", "L", "G"]]
+                        [["A", "r", "G"], ["c", "L", "A"], ["c", "R", "G"], ["A", "l", "G"]],
+                        [["e", "R", "G"], ["c", "L", "A"], ["A", "r", "G"], ["c", "L", "G"]],
+                        [["A", "r", "G"], ["e", "L", "A"], ["c", "R", "G"], ["c", "L", "G"]]
                     ],
                     extreme: [
                         [["F", "K", "K"], ["c", "L", "A"], ["c", "R", "G"], ["c", "R", "G"]], 
@@ -96,7 +118,9 @@
                     basic: [[["c", "R", "G"], ["c", "L", "G"], ["c", "R", "A"], ["c", "L", "G"]]],
                     advanced: [
                         [["c", "R", "G"], ["c", "L", "G"], ["c", "R", "A"], ["c", "L", "G"]],
-                        [["e", "R", "G"], ["c", "L", "G"], ["c", "R", "A"], ["c", "L", "G"]]
+                        [["A", "r", "G"], ["A", "l", "G"], ["e", "R", "A"], ["c", "L", "G"]],
+                        [["c", "R", "G"], ["A", "l", "G"], ["c", "R", "A"], ["A", "l", "G"]],
+                        [["e", "R", "G"], ["c", "L", "G"], ["c", "R", "A"], ["A", "l", "G"]]
                     ],
                     extreme: [
                         [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["c", "R", "A"], ["c", "L", "G"]],
@@ -108,7 +132,9 @@
                     basic: [[["c", "R", "G"], ["c", "L", "G"], ["c", "R", "G"], ["c", "L", "A"]]],
                     advanced: [
                         [["c", "R", "G"], ["c", "L", "G"], ["c", "R", "G"], ["c", "L", "A"]],
-                        [["c", "R", "G"], ["e", "L", "G"], ["c", "R", "G"], ["c", "L", "A"]]
+                        [["A", "r", "G"], ["c", "L", "G"], ["A", "r", "G"], ["e", "L", "A"]],
+                        [["c", "R", "G"], ["A", "l", "G"], ["c", "R", "G"], ["c", "L", "A"]],
+                        [["e", "R", "G"], ["A", "l", "G"], ["A", "r", "G"], ["c", "L", "A"]]
                     ],
                     extreme: [
                         [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K"], ["c", "L", "A"]], 
@@ -117,39 +143,42 @@
                 }
             },
             swing: {
-                rest: { basic: [[["z2", "", ""]]], advanced: [[["z2", "", ""]]] },
+                rest: { 
+                    basic: [[["z2", "", ""]]], 
+                    advanced: [[["[!style=x!fF]", "R+K", "A", "2"]]] 
+                },
                 acc_1: {
                     basic: [[["c", "R", "A"], ["c", "L", "G"], ["c", "R", "G"]]],
                     advanced: [
-                        [["c", "R", "A"], ["c", "L", "G"], ["c", "R", "G"]],
-                        [["c", "R", "A"], ["e", "L", "G"], ["c", "R", "G"]]
+                        [["c", "R", "A"], ["A", "l", "G"], ["c", "R", "G"]],
+                        [["e", "R", "A"], ["c", "L", "G"], ["A", "r", "G"]]
                     ]
                 },
                 acc_2: {
                     basic: [[["c", "L", "G"], ["c", "R", "A"], ["c", "L", "G"]]],
                     advanced: [
-                        [["c", "L", "G"], ["c", "R", "A"], ["c", "L", "G"]],
-                        [["c", "L", "G"], ["c", "R", "A"], ["e", "L", "G"]]
+                        [["A", "l", "G"], ["c", "R", "A"], ["c", "L", "G"]],
+                        [["c", "L", "G"], ["e", "R", "A"], ["A", "l", "G"]]
                     ]
                 },
                 acc_3: {
                     basic: [[["c", "R", "G"], ["c", "L", "G"], ["c", "R", "A"]]],
                     advanced: [
-                        [["c", "R", "G"], ["c", "L", "G"], ["c", "R", "A"]],
-                        [["c", "R", "G"], ["e", "L", "G"], ["c", "R", "A"]]
+                        [["c", "R", "G"], ["A", "l", "G"], ["c", "R", "A"]],
+                        [["A", "r", "G"], ["c", "L", "G"], ["e", "R", "A"]]
                     ]
                 },
                 acc_4: {
                     basic: [[["c", "L", "G"], ["c", "R", "G"], ["c", "L", "A"]]],
                     advanced: [
-                        [["c", "L", "G"], ["c", "R", "G"], ["c", "L", "A"]],
-                        [["c", "L", "G"], ["e", "R", "G"], ["c", "L", "A"]]
+                        [["c", "L", "G"], ["A", "R", "G"], ["c", "L", "A"]],
+                        [["A", "l", "G"], ["c", "R", "G"], ["e", "L", "A"]]
                     ]
                 }
             }
         };
 
-        // --- 手順・強弱・キック連打ガード ---
+        // --- 手順・ガード ---
         function applyStickingGuard(fullPhrase) {
             let lastHand = "";
             let handCount = 0;
@@ -215,12 +244,16 @@
         function slotToNotesAndWords(slot) {
             let notes = "";
             let wordsArr = [];
+            
             const processNote = (s, force16th = false) => {
                 let [note, sticking, dyn, duration] = s;
                 if (note.includes("z")) return note + (duration || (force16th ? "/" : ""));
                 
-                // シンプルにアクセント記号 ">" のみを表示 (!^>! で常に音符の上側に固定)
-                let prefix = (dyn === 'A') ? "!^>!" : "";
+                // ダイナミクス属性 (!ff! = アクセント, !ppp! = ゴースト)
+                // !^>! でアクセント記号 (>) を常に音符の上側に配置。!^! (マルカート) を削除
+                let velocity = (dyn === 'A') ? "!ff!" : "!ppp!";
+                let prefix = (dyn === 'A') ? "!^>!" + velocity : velocity;
+                
                 let displaySticking = sticking;
                 if (dyn !== 'A' && displaySticking) {
                     displaySticking = displaySticking.toLowerCase().replace("+k", "").replace("k", ""); 
@@ -235,6 +268,7 @@
             
             if (slot.length === 1) notes = processNote(slot[0]);
             else if (slot.length === 3) {
+                // 三連符内でも !^>! によりアクセントが上側に固定される
                 notes = "(3" + slot.map(s => processNote(s)).join("");
             } else {
                 notes = slot.map(s => processNote(s, slot.length === 4)).join("");
@@ -401,10 +435,23 @@
                 }
             }, [visualObj]);
 
+            const exportToPDF = () => {
+                window.print();
+            };
+
             return (
-                <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-3 md:p-6 mt-2 md:mt-4">
-                    <div className="text-center mb-4 md:mb-6"><h1 className="text-2xl md:text-3xl font-bold text-zinc-800">D.R.O.P. Solo Etude</h1></div>
-                    <div className="flex flex-col gap-4 mb-6 bg-zinc-50 p-3 md:p-4 rounded-lg border border-zinc-200">
+                <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-3 md:p-6 mt-2 md:mt-4 printable-area">
+                    <div className="flex justify-between items-center mb-4 md:mb-6">
+                        <h1 className="text-xl md:text-3xl font-bold text-zinc-800">D.R.O.P. Solo Etude</h1>
+                        <button 
+                            onClick={exportToPDF}
+                            className="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-3 md:py-2 md:px-4 rounded-md shadow-sm transition-colors text-xs md:text-sm flex items-center gap-2"
+                        >
+                            <span>📄 PDF保存 / 印刷</span>
+                        </button>
+                    </div>
+
+                    <div className="no-print flex flex-col gap-4 mb-6 bg-zinc-50 p-3 md:p-4 rounded-lg border border-zinc-200">
                         <div className="flex flex-wrap justify-center gap-3">
                             <div className="flex bg-white rounded-md border border-zinc-300 overflow-hidden shadow-sm">
                                 <button onClick={() => { unlockAudio(); setFeel('straight'); }} className={`px-4 py-2 text-sm font-medium transition-colors ${feel === 'straight' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>Straight</button>
@@ -424,16 +471,22 @@
                             <button onClick={generateNewSkeleton} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md shadow-sm transition-colors text-sm">🔄 New Phrasing</button>
                         </div>
                     </div>
-                    <div className="bg-white border-2 border-zinc-100 rounded-lg p-2 md:p-4 overflow-x-auto min-h-[150px]"><div ref={scoreRef}></div></div>
-                    <div className="mt-4 bg-slate-200 border border-slate-300 rounded-lg p-2 w-full max-w-2xl mx-auto shadow-inner"><div ref={audioContainerRef} className="w-full"></div></div>
-                    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <div className="bg-white border-2 border-zinc-100 rounded-lg p-2 md:p-4 overflow-x-auto min-h-[150px]">
+                        <div id="score-container" ref={scoreRef}></div>
+                    </div>
+
+                    <div className="no-print mt-4 bg-slate-200 border border-slate-300 rounded-lg p-2 w-full max-w-2xl mx-auto shadow-inner">
+                        <div ref={audioContainerRef} className="w-full"></div>
+                    </div>
+
+                    <div className="no-print mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-4">
                             <h3 className="font-bold text-zinc-800 mb-2 border-b border-indigo-200 pb-1 text-sm">🥁 手順の読み方</h3>
-                            <ul className="text-xs text-zinc-600 space-y-1 font-mono bg-white p-2 rounded">
+                            <ul className="text-xs text-zinc-600 space-y-1 font-mono bg-white p-2 rounded border border-zinc-100 shadow-inner">
                                 <li><strong>R / L / K :</strong> アクセント (強)</li>
                                 <li><strong>r / l :</strong> ゴーストノート (弱)</li>
                             </ul>
-                            <p className="text-[10px] text-zinc-500 mt-2">※アクセント記号「&gt;」は常に音符の上に表示されます。</p>
                         </div>
                     </div>
                 </div>
