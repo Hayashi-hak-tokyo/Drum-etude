@@ -25,8 +25,10 @@
         #score-container svg { width: 100%; height: auto; display: block; }
         .abcjs-inline-audio { max-width: 100%; padding: 10px; border-radius: 8px; }
 
-        /* 不要な装飾記号は非表示。アクセント記号のみ表示 */
-        .abcjs-decoration, .abcjs-dynamics, .abcjs-annotation {
+        /* --- 修正: 楽譜内の不要な記号のみを非表示にし、プレイヤーのUIを保護 --- */
+        #score-container svg .abcjs-decoration, 
+        #score-container svg .abcjs-dynamics, 
+        #score-container svg .abcjs-annotation {
             display: none !important;
         }
         
@@ -34,6 +36,15 @@
         .abcjs-articulation {
             fill: #ef4444 !important;
             stroke: #ef4444 !important;
+        }
+
+        /* --- オーディオプレイヤーの視認性向上 --- */
+        .abcjs-inline-audio .abcjs-tempo-wrapper,
+        .abcjs-inline-audio .abcjs-midi-tempo,
+        .abcjs-inline-audio .abcjs-label {
+            color: #18181b !important; /* 濃いグレー(zinc-900)で確実に見えるように */
+            font-weight: 600 !important;
+            display: inline-block !important; /* 非表示を解除 */
         }
         
         button { user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -59,18 +70,16 @@
         const { useState, useEffect, useRef } = React;
 
         // --- MOTIF LIBRARY ---
-        // e: High Tom, c: Snare, A: Floor Tom, F: Kick, f: Crash
         const MOTIF_LIBRARY = {
             straight: {
                 rest: {
                     basic: [[["z2", "", ""]]],
-                    // Orchestration: 8分クラッシュ + 多彩な16分フィラー
                     advanced: [
-                        [["[!style=x!fF]", "R+K", "A"], ["c", "r", "G", "/"], ["c", "l", "G", "/"]], // Snare filler
-                        [["[!style=x!fF]", "R+K", "A"], ["e", "r", "G", "/"], ["e", "l", "G", "/"]], // High Tom filler
-                        [["[!style=x!fF]", "R+K", "A"], ["A", "r", "G", "/"], ["A", "l", "G", "/"]], // Floor Tom filler
-                        [["[!style=x!fF]", "R+K", "A"], ["c", "r", "G", "/"], ["e", "l", "G", "/"]], // Mix High
-                        [["[!style=x!fF]", "R+K", "A"], ["e", "r", "G", "/"], ["A", "l", "G", "/"]]  // Mix Deep
+                        [["[!style=x!fF]", "R+K", "A"], ["c", "r", "G", "/"], ["c", "l", "G", "/"]], 
+                        [["[!style=x!fF]", "R+K", "A"], ["e", "r", "G", "/"], ["e", "l", "G", "/"]], 
+                        [["[!style=x!fF]", "R+K", "A"], ["A", "r", "G", "/"], ["A", "l", "G", "/"]], 
+                        [["[!style=x!fF]", "R+K", "A"], ["c", "r", "G", "/"], ["e", "l", "G", "/"]], 
+                        [["[!style=x!fF]", "R+K", "A"], ["e", "r", "G", "/"], ["A", "l", "G", "/"]]  
                     ],
                     extreme: [[["z2", "", ""]]]
                 },
@@ -139,11 +148,10 @@
             swing: {
                 rest: { 
                     basic: [[["z2", "", ""]]], 
-                    // Orchestration: 1拍目クラッシュ + 3拍目フィラー（多彩な移動）
                     advanced: [
-                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["c", "r", "G"]],
-                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["e", "r", "G"]],
-                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["A", "r", "G"]]
+                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["c", "l", "G"]],
+                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["e", "l", "G"]],
+                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["A", "l", "G"]]
                     ] 
                 },
                 acc_1: {
@@ -196,17 +204,9 @@
 
                 if (hand !== "") {
                     if (hand === lastHand) {
-                        // --- 修正: 同じ手が続く際はアクセントを使わない ---
                         hit[2] = 'G'; 
-
-                        // --- 修正: 移動ダブル禁止ロジック ---
-                        // クラッシュ(style=x)から通常の太鼓へは移動を許すが、それ以外の太鼓間移動は制限
                         let targetPitch = lastActualPitch;
-                        if (targetPitch.includes("style=x")) {
-                            // 前がクラッシュなら、今回のダブルは元の楽器（c, e, A）のままでOKだが
-                            // シンバルヘッドは解除する（ライブラリで既に設定済みだが念のため）
-                        } else {
-                            // 前が太鼓なら、その太鼓を維持
+                        if (!targetPitch.includes("style=x")) {
                             if (!hit[0].includes("z")) hit[0] = targetPitch;
                         }
                         
@@ -230,7 +230,6 @@
                     lastActualPitch = hit[0];
                 }
 
-                // キック連打制限
                 if (hasKick) {
                     kickCount++;
                     if (kickCount > 2) {
@@ -285,7 +284,6 @@
             } else if (feel === 'swing') {
                 notes = "(3" + slot.map(s => processNote(s)).join("");
             } else {
-                // --- 修正: Straightでは要素数が3でも三連符化しない ---
                 notes = slot.map(s => processNote(s, slot.length === 4)).join("");
             }
             return { notes, words: wordsArr.join(" ") };
@@ -293,7 +291,6 @@
 
         function skeletonToAbc(skeleton, difficulty, feel, isTradeMode) {
             if (!skeleton) return "";
-            
             const generateSystem = (bars) => {
                 let flatPhrase = [];
                 bars.forEach((barSkeleton, barIdx) => {
@@ -301,19 +298,15 @@
                         const { key, isCrash, variationIndex } = beatSkeleton;
                         const feelConfig = MOTIF_LIBRARY[feel];
                         let keyToUse = key;
-
                         if (difficulty === 'extreme' && feel === 'straight' && key === 'rest') {
                             if (variationIndex % 100 < 25) keyToUse = 'glitch_triplet';
                             else keyToUse = 'glitch_fill';
                         }
-
                         const keyConfig = feelConfig[keyToUse] || feelConfig['rest'];
                         let targetDiff = (feel === 'swing' && difficulty === 'extreme') ? 'advanced' : difficulty;
                         const motifOptions = keyConfig[targetDiff] || keyConfig['basic'];
                         let motifDef = motifOptions[variationIndex % motifOptions.length];
-                        
                         let motif = JSON.parse(JSON.stringify(motifDef));
-
                         if (difficulty === 'basic') {
                             motif.forEach(step => {
                                 if (!step[0].includes("z")) {
@@ -325,7 +318,6 @@
                                 }
                             });
                         }
-
                         if (difficulty !== 'basic' && isCrash) {
                             for (let i = 0; i < motif.length; i++) {
                                 if (motif[i][2] === 'A') {
@@ -338,11 +330,9 @@
                         flatPhrase.push({ motif, isBarEnd: (beatIdx === 3) });
                     });
                 });
-
                 let allSteps = [];
                 flatPhrase.forEach(m => allSteps.push(...m.motif));
                 applyStickingGuard(allSteps);
-
                 let notesStr = "";
                 let wordsStr = "w: ";
                 let stepIdx = 0;
@@ -356,16 +346,13 @@
                 });
                 return notesStr + "\n" + wordsStr + "\n";
             };
-
             let finalAbc = generateSystem(skeleton);
-
             if (isTradeMode) {
                 finalAbc += "z2 z2 z2 z2 | z2 z2 z2 z2 | z2 z2 z2 z2 | z2 z2 z2 z2 |] \n";
                 finalAbc += "w: | | | | \n";
             } else {
                 finalAbc = finalAbc.trim().slice(0, -1) + "] \n";
             }
-
             return finalAbc;
         }
 
@@ -392,10 +379,8 @@
             const generateNewSkeleton = () => {
                 unlockAudio();
                 const accentKeys = Object.keys(MOTIF_LIBRARY[feel]).filter(k => k.startsWith('acc'));
-                
                 let newSkeleton = [];
                 let prevWasRest = false;
-
                 for (let bar = 0; bar < 4; bar++) {
                     let barSkeleton = [];
                     for (let beat = 0; beat < 4; beat++) {
@@ -413,7 +398,7 @@
                             }
                         }
                         let isCrash = (beat === 0 && key !== 'rest') ? (bar === 0 ? 0.8 : 0.4) : 0;
-                        barSkeleton.push({ key, isCrash, variationIndex: Math.floor(Math.random() * 100) });
+                        barSkeleton.push({ key, isCrash: Math.random() < isCrash, variationIndex: Math.floor(Math.random() * 100) });
                     }
                     newSkeleton.push(barSkeleton);
                 }
@@ -448,22 +433,16 @@
                 }
             }, [visualObj]);
 
-            const exportToPDF = () => {
-                window.print();
-            };
+            const exportToPDF = () => { window.print(); };
 
             return (
                 <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-3 md:p-6 mt-2 md:mt-4 printable-area">
                     <div className="flex justify-between items-center mb-4 md:mb-6">
                         <h1 className="text-xl md:text-3xl font-bold text-zinc-800">D.R.O.P. Solo Etude</h1>
-                        <button 
-                            onClick={exportToPDF}
-                            className="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-3 md:py-2 md:px-4 rounded-md shadow-sm transition-colors text-xs md:text-sm flex items-center gap-2"
-                        >
+                        <button onClick={exportToPDF} className="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-3 md:py-2 md:px-4 rounded-md shadow-sm transition-colors text-xs md:text-sm flex items-center gap-2">
                             <span>📄 PDF保存 / 印刷</span>
                         </button>
                     </div>
-
                     <div className="no-print flex flex-col gap-4 mb-6 bg-zinc-50 p-3 md:p-4 rounded-lg border border-zinc-200">
                         <div className="flex flex-wrap justify-center gap-3">
                             <div className="flex bg-white rounded-md border border-zinc-300 overflow-hidden shadow-sm">
@@ -484,15 +463,12 @@
                             <button onClick={generateNewSkeleton} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md shadow-sm transition-colors text-sm">🔄 New Phrasing</button>
                         </div>
                     </div>
-
                     <div className="bg-white border-2 border-zinc-100 rounded-lg p-2 md:p-4 overflow-x-auto min-h-[150px]">
                         <div id="score-container" ref={scoreRef}></div>
                     </div>
-
                     <div className="no-print mt-4 bg-slate-200 border border-slate-300 rounded-lg p-2 w-full max-w-2xl mx-auto shadow-inner">
                         <div ref={audioContainerRef} className="w-full"></div>
                     </div>
-
                     <div className="no-print mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-4">
                             <h3 className="font-bold text-zinc-800 mb-2 border-b border-indigo-200 pb-1 text-sm">🥁 手順の読み方</h3>
