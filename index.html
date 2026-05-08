@@ -25,12 +25,12 @@
         #score-container svg { width: 100%; height: auto; display: block; }
         .abcjs-inline-audio { max-width: 100%; padding: 10px; border-radius: 8px; }
 
-        /* ダイナミクス（ff, ppp）は再生用なので非表示にし、アクセント記号(articulation)は表示 */
-        .abcjs-decoration, .abcjs-dynamics {
+        /* 不要なテキスト装飾や強弱記号の文字を非表示にする */
+        .abcjs-decoration, .abcjs-dynamics, .abcjs-annotation {
             display: none !important;
         }
         
-        /* アクセント記号を赤くして視認性を高める */
+        /* アクセント記号のみを表示し、赤くする */
         .abcjs-articulation {
             fill: #ef4444 !important;
             stroke: #ef4444 !important;
@@ -38,7 +38,7 @@
         
         button { user-select: none; -webkit-tap-highlight-color: transparent; }
 
-        /* --- 印刷/PDF用設定 --- */
+        /* 印刷/PDF用設定 */
         @media print {
             body { background-color: white; padding: 0; margin: 0; }
             .no-print { display: none !important; }
@@ -63,7 +63,6 @@
         const { useState, useEffect, useRef } = React;
 
         // --- MOTIF LIBRARY ---
-        // A (Floor Tom) はアクセント属性 'A' を外し、ゴースト属性 'G' で使用
         const MOTIF_LIBRARY = {
             straight: {
                 rest: {
@@ -110,7 +109,7 @@
                     ],
                     extreme: [
                         [["F", "K", "K"], ["c", "L", "A"], ["c", "R", "G"], ["c", "R", "G"]], 
-                        [["F", "K", "K"], ["c", "L", "A"], ["e", "r", "G", "//"], ["e", "r", "G", "//"], ["A", "l", "G", "//"], ["A", "l", "G", "//"]],
+                        [["F", "K", "K"], ["c", "L", "A"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"]],
                         [["c", "r", "G"], ["c", "L", "A"], ["c", "r", "G"]] 
                     ]
                 },
@@ -178,7 +177,7 @@
             }
         };
 
-        // --- 手順・ガード ---
+        // --- 手順ガード ---
         function applyStickingGuard(fullPhrase) {
             let lastHand = "";
             let handCount = 0;
@@ -247,12 +246,16 @@
             
             const processNote = (s, force16th = false) => {
                 let [note, sticking, dyn, duration] = s;
-                if (note.includes("z")) return note + (duration || (force16th ? "/" : ""));
                 
-                // ダイナミクス属性 (!ff! = アクセント, !ppp! = ゴースト)
-                // !^>! でアクセント記号 (>) を常に音符の上側に配置。!^! (マルカート) を削除
+                // --- 手順のズレ修正 ---
+                // 休符(z)の場合は歌詞行に "_" を追加してアライメントを保つ
+                if (note.includes("z")) {
+                    wordsArr.push("_");
+                    return note + (duration || (force16th ? "/" : ""));
+                }
+                
                 let velocity = (dyn === 'A') ? "!ff!" : "!ppp!";
-                let prefix = (dyn === 'A') ? "!^>!" + velocity : velocity;
+                let prefix = (dyn === 'A') ? "!>!" + velocity : velocity;
                 
                 let displaySticking = sticking;
                 if (dyn !== 'A' && displaySticking) {
@@ -261,14 +264,15 @@
                     displaySticking = displaySticking.toUpperCase();
                 }
 
-                if (displaySticking) wordsArr.push(displaySticking);
+                // 音符がある場合は手順を追加。手順が空でも "_" で埋めてアライメントを維持
+                wordsArr.push(displaySticking || "_");
+                
                 let suffix = duration || (force16th ? "/" : "");
                 return prefix + note + suffix;
             };
             
             if (slot.length === 1) notes = processNote(slot[0]);
             else if (slot.length === 3) {
-                // 三連符内でも !^>! によりアクセントが上側に固定される
                 notes = "(3" + slot.map(s => processNote(s)).join("");
             } else {
                 notes = slot.map(s => processNote(s, slot.length === 4)).join("");
@@ -299,7 +303,6 @@
                         
                         let motif = JSON.parse(JSON.stringify(motifDef));
 
-                        // Basicモード防護ガード
                         if (difficulty === 'basic') {
                             motif.forEach(step => {
                                 if (!step[0].includes("z")) {
@@ -398,9 +401,8 @@
                                 prevWasRest = false;
                             }
                         }
-
                         let isCrash = (beat === 0 && key !== 'rest') ? (bar === 0 ? 0.8 : 0.4) : 0;
-                        barSkeleton.push({ key, isCrash: Math.random() < isCrash, variationIndex: Math.floor(Math.random() * 100) });
+                        barSkeleton.push({ key, isCrash, variationIndex: Math.floor(Math.random() * 100) });
                     }
                     newSkeleton.push(barSkeleton);
                 }
@@ -411,7 +413,7 @@
                 if (skeleton) {
                     const body = skeletonToAbc(skeleton, difficulty, feel, isTradeMode);
                     if (body) {
-                        setAbcString(`X:1\nT:D.R.O.P. Solo Etude\nM:4/4\nL:1/8\nQ:1/4=90\nK:perc\n%%MIDI channel 10\n%%MIDI drummap f 49\n%%MIDI drummap e 45\n%%MIDI drummap c 38\n%%MIDI drummap A 43\n%%MIDI drummap F 36\n%%stretchlast 1\n%%vocalfont sans-serif 16\n%%stafflines 5\n` + body);
+                        setAbcString(`X:1\nT:D.R.O.P. Solo Etude\nM:4/4\nL:1/8\nQ:1/4=90\nK:perc\n%%MIDI channel 10\n%%MIDI drummap f 49\n%%MIDI drummap e 45\n%%MIDI drummap c 38\n%%MIDI drummap A 43\n%%MIDI drummap F 36\n%%articulation u\n%%stretchlast 1\n%%vocalfont sans-serif 16\n%%stafflines 5\n` + body);
                     }
                 }
             }, [skeleton, difficulty, feel, isTradeMode]);
