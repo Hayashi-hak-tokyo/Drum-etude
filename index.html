@@ -25,12 +25,12 @@
         #score-container svg { width: 100%; height: auto; display: block; }
         .abcjs-inline-audio { max-width: 100%; padding: 10px; border-radius: 8px; }
 
-        /* 不要なテキスト装飾や強弱記号の文字を非表示にする */
+        /* 不要な装飾記号は非表示。アクセント記号のみ表示 */
         .abcjs-decoration, .abcjs-dynamics, .abcjs-annotation {
             display: none !important;
         }
         
-        /* アクセント記号のみを表示し、赤くする */
+        /* アクセント記号(articulation)を赤くする */
         .abcjs-articulation {
             fill: #ef4444 !important;
             stroke: #ef4444 !important;
@@ -44,15 +44,11 @@
             .no-print { display: none !important; }
             .print-only { display: block !important; }
             .printable-area { 
-                box-shadow: none !important; 
-                border: none !important; 
-                width: 100% !important; 
-                max-width: none !important;
-                margin: 0 !important;
-                padding: 0 !important;
+                box-shadow: none !important; border: none !important; 
+                width: 100% !important; max-width: none !important;
+                margin: 0 !important; padding: 0 !important;
             }
             #score-container svg { width: 100% !important; }
-            .page-break { page-break-before: always; }
         }
     </style>
 </head>
@@ -63,16 +59,18 @@
         const { useState, useEffect, useRef } = React;
 
         // --- MOTIF LIBRARY ---
+        // e: High Tom, c: Snare, A: Floor Tom, F: Kick, f: Crash
         const MOTIF_LIBRARY = {
             straight: {
                 rest: {
                     basic: [[["z2", "", ""]]],
-                    // Orchestration: 8分クラッシュ + 16分フィラー(多彩なドラム移動)
+                    // Orchestration: 8分クラッシュ + 多彩な16分フィラー
                     advanced: [
                         [["[!style=x!fF]", "R+K", "A"], ["c", "r", "G", "/"], ["c", "l", "G", "/"]], // Snare filler
-                        [["[!style=x!fF]", "R+K", "A"], ["e", "r", "G", "/"], ["e", "l", "G", "/"]], // Tom filler
-                        [["[!style=x!fF]", "R+K", "A"], ["A", "r", "G", "/"], ["A", "l", "G", "/"]], // FT filler
-                        [["[!style=x!fF]", "R+K", "A"], ["c", "r", "G", "/"], ["e", "l", "G", "/"]]  // Mixed drum filler
+                        [["[!style=x!fF]", "R+K", "A"], ["e", "r", "G", "/"], ["e", "l", "G", "/"]], // High Tom filler
+                        [["[!style=x!fF]", "R+K", "A"], ["A", "r", "G", "/"], ["A", "l", "G", "/"]], // Floor Tom filler
+                        [["[!style=x!fF]", "R+K", "A"], ["c", "r", "G", "/"], ["e", "l", "G", "/"]], // Mix High
+                        [["[!style=x!fF]", "R+K", "A"], ["e", "r", "G", "/"], ["A", "l", "G", "/"]]  // Mix Deep
                     ],
                     extreme: [[["z2", "", ""]]]
                 },
@@ -141,11 +139,11 @@
             swing: {
                 rest: { 
                     basic: [[["z2", "", ""]]], 
-                    // Orchestration: クラッシュ(1拍目) + 様々なフィラー(3拍目)
+                    // Orchestration: 1拍目クラッシュ + 3拍目フィラー（多彩な移動）
                     advanced: [
-                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["c", "r", "G"]], // Snare filler
-                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["e", "r", "G"]], // Tom filler
-                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["A", "r", "G"]]  // FT filler
+                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["c", "r", "G"]],
+                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["e", "r", "G"]],
+                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["A", "r", "G"]]
                     ] 
                 },
                 acc_1: {
@@ -179,15 +177,17 @@
             }
         };
 
-        // --- 手順・オーケストレーションガード ---
+        // --- 手順・強弱・オーケストレーションガード ---
         function applyStickingGuard(fullPhrase) {
             let lastHand = "";
-            let lastPitch = ""; 
+            let lastActualPitch = ""; 
             let handCount = 0;
             let kickCount = 0;
 
             for (let i = 0; i < fullPhrase.length; i++) {
                 let hit = fullPhrase[i];
+                if (!hit || hit[0].includes("z")) continue; 
+
                 let sticking = hit[1] || "";
                 let hasKick = sticking.includes("K");
                 let hand = "";
@@ -196,22 +196,24 @@
 
                 if (hand !== "") {
                     if (hand === lastHand) {
-                        // 修正: 直前がクラッシュだった場合、フィラーはスネア(c)に逃がす
-                        let targetPitch = lastPitch;
+                        // --- 修正: 同じ手が続く際はアクセントを使わない ---
+                        hit[2] = 'G'; 
+
+                        // --- 修正: 移動ダブル禁止ロジック ---
+                        // クラッシュ(style=x)から通常の太鼓へは移動を許すが、それ以外の太鼓間移動は制限
+                        let targetPitch = lastActualPitch;
                         if (targetPitch.includes("style=x")) {
-                            targetPitch = "c"; 
-                        }
-                        
-                        // ダブルの際は同じ楽器を叩く(移動ダブル禁止)
-                        if (hit[0] !== targetPitch && !hit[0].includes("z") && targetPitch !== "" && !targetPitch.includes("z")) {
-                            hit[0] = targetPitch;
+                            // 前がクラッシュなら、今回のダブルは元の楽器（c, e, A）のままでOKだが
+                            // シンバルヘッドは解除する（ライブラリで既に設定済みだが念のため）
+                        } else {
+                            // 前が太鼓なら、その太鼓を維持
+                            if (!hit[0].includes("z")) hit[0] = targetPitch;
                         }
                         
                         handCount++;
                         if (handCount > 2) {
                             let newBase = (hand === "R") ? "L" : "R";
-                            let isGhost = (hit[2] === 'G');
-                            hit[1] = hit[1].replace(/[RrLl]/g, isGhost ? newBase.toLowerCase() : newBase);
+                            hit[1] = hit[1].replace(/[RrLl]/g, newBase.toLowerCase());
                             lastHand = newBase;
                             handCount = 1;
                         }
@@ -225,9 +227,10 @@
                 }
 
                 if (!hit[0].includes("z")) {
-                    lastPitch = hit[0];
+                    lastActualPitch = hit[0];
                 }
 
+                // キック連打制限
                 if (hasKick) {
                     kickCount++;
                     if (kickCount > 2) {
@@ -280,10 +283,9 @@
             if (slot.length === 1) {
                 notes = processNote(slot[0]);
             } else if (feel === 'swing') {
-                // Swingのみ三連符化
                 notes = "(3" + slot.map(s => processNote(s)).join("");
             } else {
-                // Straightでは要素数が3(8分+16分2つ)でも三連符化せず、そのまま描画
+                // --- 修正: Straightでは要素数が3でも三連符化しない ---
                 notes = slot.map(s => processNote(s, slot.length === 4)).join("");
             }
             return { notes, words: wordsArr.join(" ") };
