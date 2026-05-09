@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rudiments Drum Solo Etude - IDM & Syncopation</title>
+    <title>Rudiments Drum Solo Etude - Elvin Advanced refined</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -25,20 +25,19 @@
         #score-container svg { width: 100%; height: auto; display: block; }
         .abcjs-inline-audio { max-width: 100%; padding: 10px; border-radius: 8px; }
 
-        /* 楽譜内の不要なテキスト（ff, ppp等）や装飾記号を非表示にする */
+        /* 不要なテキスト装飾や強弱記号の文字を非表示にする */
         #score-container svg .abcjs-decoration, 
         #score-container svg .abcjs-dynamics, 
         #score-container svg .abcjs-annotation {
             display: none !important;
         }
         
-        /* アクセント記号(articulation)のみを表示し、赤くして視認性を高める */
+        /* アクセント記号のみを表示し、赤くする */
         .abcjs-articulation {
             fill: #ef4444 !important;
             stroke: #ef4444 !important;
         }
 
-        /* オーディオプレイヤーのBPMなどの視認性向上 */
         .abcjs-inline-audio .abcjs-tempo-wrapper,
         .abcjs-inline-audio .abcjs-midi-tempo,
         .abcjs-inline-audio .abcjs-label {
@@ -60,6 +59,7 @@
                 margin: 0 !important; padding: 0 !important;
             }
             #score-container svg { width: 100% !important; }
+            .page-break { page-break-before: always; }
         }
     </style>
 </head>
@@ -70,6 +70,7 @@
         const { useState, useEffect, useRef } = React;
 
         // --- MOTIF LIBRARY ---
+        // A (Floor Tom) は常にゴースト属性 'G' で使用
         const MOTIF_LIBRARY = {
             straight: {
                 rest: {
@@ -87,7 +88,8 @@
                     extreme: [
                         [["c", "r", "G"], ["F", "K", "K"], ["F", "K", "K"], ["c", "l", "G"]], 
                         [["F", "K", "K"], ["c", "r", "G"], ["c", "l", "G"], ["F", "K", "K"]], 
-                        [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K", "/"], ["F", "K", "K", "/"]]
+                        [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K", "/"], ["F", "K", "K", "/"]],
+                        [["c", "r", "G"], ["c", "l", "G"], ["c", "r", "G"]] 
                     ]
                 },
                 glitch_triplet: {
@@ -102,11 +104,13 @@
                     advanced: [
                         [["c", "R", "A"], ["c", "L", "G"], ["c", "R", "G"], ["c", "L", "G"]],
                         [["e", "R", "A"], ["c", "L", "G"], ["c", "R", "G"], ["c", "L", "G"]],
-                        [["c", "R", "A"], ["A", "l", "G"], ["A", "r", "G"], ["c", "L", "G"]]
+                        [["c", "R", "A"], ["A", "l", "G"], ["A", "r", "G"], ["c", "L", "G"]],
+                        [["e", "R", "A"], ["c", "L", "G"], ["A", "r", "G"], ["A", "l", "G"]]
                     ],
                     extreme: [
                         [["c", "R", "A"], ["c", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]], 
-                        [["c", "R", "A"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K", "/"]]
+                        [["c", "R", "A"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K", "/"]],
+                        [["c", "R", "A"], ["c", "r", "G"], ["c", "l", "G"]] 
                     ]
                 },
                 acc_2: {
@@ -114,11 +118,13 @@
                     advanced: [
                         [["c", "R", "G"], ["c", "L", "A"], ["c", "R", "G"], ["c", "L", "G"]],
                         [["A", "r", "G"], ["c", "L", "A"], ["c", "R", "G"], ["A", "l", "G"]],
-                        [["e", "R", "G"], ["c", "L", "A"], ["A", "r", "G"], ["c", "L", "G"]]
+                        [["e", "R", "G"], ["c", "L", "A"], ["A", "r", "G"], ["c", "L", "G"]],
+                        [["A", "r", "G"], ["e", "L", "A"], ["c", "R", "G"], ["c", "L", "G"]]
                     ],
                     extreme: [
                         [["F", "K", "K"], ["c", "L", "A"], ["c", "R", "G"], ["c", "R", "G"]], 
-                        [["F", "K", "K"], ["c", "L", "A"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"]]
+                        [["F", "K", "K"], ["c", "L", "A"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"]],
+                        [["c", "r", "G"], ["c", "L", "A"], ["c", "r", "G"]] 
                     ]
                 },
                 acc_3: {
@@ -126,11 +132,13 @@
                     advanced: [
                         [["c", "R", "G"], ["c", "L", "G"], ["c", "R", "A"], ["c", "L", "G"]],
                         [["A", "r", "G"], ["A", "l", "G"], ["e", "R", "A"], ["c", "L", "G"]],
-                        [["c", "R", "G"], ["A", "l", "G"], ["c", "R", "A"], ["A", "l", "G"]]
+                        [["c", "R", "G"], ["A", "l", "G"], ["c", "R", "A"], ["A", "l", "G"]],
+                        [["e", "R", "G"], ["c", "L", "G"], ["c", "R", "A"], ["A", "l", "G"]]
                     ],
                     extreme: [
                         [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["c", "R", "A"], ["c", "L", "G"]],
-                        [["F", "K", "K"], ["c", "R", "A"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["c", "r", "G", "//"], ["c", "r", "G", "//"]]
+                        [["F", "K", "K"], ["c", "R", "A"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["c", "r", "G", "//"], ["c", "r", "G", "//"]],
+                        [["F", "K", "K"], ["c", "l", "G"], ["c", "R", "A"]] 
                     ]
                 },
                 acc_4: {
@@ -138,7 +146,8 @@
                     advanced: [
                         [["c", "R", "G"], ["c", "L", "G"], ["c", "R", "G"], ["c", "L", "A"]],
                         [["A", "r", "G"], ["c", "L", "G"], ["A", "r", "G"], ["e", "L", "A"]],
-                        [["c", "R", "G"], ["A", "l", "G"], ["c", "R", "G"], ["c", "L", "A"]]
+                        [["c", "R", "G"], ["A", "l", "G"], ["c", "R", "G"], ["c", "L", "A"]],
+                        [["e", "R", "G"], ["A", "l", "G"], ["A", "r", "G"], ["c", "L", "A"]]
                     ],
                     extreme: [
                         [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K"], ["c", "L", "A"]], 
@@ -149,47 +158,76 @@
             swing: {
                 rest: { 
                     basic: [[["z2", "", ""]]], 
+                    // Orchestration: 1拍目クラッシュ + 3拍目フィラー
                     advanced: [
                         [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["c", "l", "G"]],
                         [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["e", "l", "G"]]
-                    ] 
+                    ],
+                    advanced_elvin: [
+                        [["[!style=x!fF]", "R+K", "A"], ["c", "l", "G"], ["A", "r", "G"]],
+                        [["e", "R", "A"], ["c", "l", "G"], ["F", "K", "G"]],
+                        [["c", "R", "A", "/"], ["e", "l", "G", "/"], ["A", "r", "G", "/"], ["F", "K", "G", "/"]]
+                    ]
                 },
                 acc_1: {
                     basic: [[["c", "R", "A"], ["c", "L", "G"], ["c", "R", "G"]]],
                     advanced: [
-                        [["c", "R", "A"], ["c", "l", "G"], ["A", "r", "G"]], 
+                        [["c", "R", "A"], ["A", "l", "G"], ["c", "R", "G"]],
                         [["e", "R", "A"], ["c", "L", "G"], ["A", "r", "G"]]
+                    ],
+                    advanced_elvin: [
+                        [["c", "R", "A"], ["e", "l", "G"], ["A", "r", "G"]],
+                        [["c", "R", "A", "/"], ["c", "l", "G", "/"], ["c", "r", "G", "/"], ["c", "l", "G", "/"]]
                     ]
                 },
                 acc_2: {
                     basic: [[["c", "L", "G"], ["c", "R", "A"], ["c", "L", "G"]]],
                     advanced: [
-                        [["A", "r", "G"], ["c", "l", "A"], ["c", "R", "G"]],
-                        [["c", "L", "G"], ["e", "R", "A"], ["e", "l", "G"]]
+                        [["A", "l", "G"], ["c", "R", "A"], ["c", "L", "G"]],
+                        [["c", "L", "G"], ["e", "R", "A"], ["A", "l", "G"]]
+                    ],
+                    advanced_elvin: [
+                        [["e", "r", "G"], ["c", "L", "A"], ["F", "K", "G"]],
+                        [["e", "r", "G", "/"], ["A", "l", "G", "/"], ["c", "L", "A", "/"], ["F", "K", "G", "/"]]
                     ]
                 },
                 acc_3: {
                     basic: [[["c", "R", "G"], ["c", "L", "G"], ["c", "R", "A"]]],
                     advanced: [
-                        [["c", "R", "G"], ["c", "L", "G"], ["A", "R", "A"]],
+                        [["c", "R", "G"], ["A", "l", "G"], ["c", "R", "A"]],
                         [["A", "r", "G"], ["c", "L", "G"], ["e", "R", "A"]]
+                    ],
+                    advanced_elvin: [
+                        [["A", "r", "G"], ["F", "K", "G"], ["e", "R", "A"]],
+                        [["A", "r", "G", "/"], ["A", "l", "G", "/"], ["e", "R", "A", "/"], ["e", "l", "G", "/"]]
                     ]
                 },
                 acc_4: {
                     basic: [[["c", "L", "G"], ["c", "R", "G"], ["c", "L", "A"]]],
                     advanced: [
                         [["c", "L", "G"], ["A", "R", "G"], ["c", "L", "A"]],
-                        [["c", "l", "G"], ["c", "R", "G"], ["e", "L", "A"]]
+                        [["A", "l", "G"], ["c", "R", "G"], ["e", "L", "A"]]
+                    ],
+                    advanced_elvin: [
+                        [["F", "K", "G"], ["c", "r", "G"], ["A", "L", "A"]],
+                        [["F", "K", "G", "/"], ["c", "r", "G", "/"], ["e", "l", "G", "/"], ["A", "L", "A", "/"]]
                     ]
+                },
+                six_tuples: {
+                    six_stroke: [[["c", "R", "A", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["e", "r", "G", "//"], ["e", "r", "G", "//"], ["A", "L", "A", "//"]]],
+                    paradiddle_diddle: [[["c", "R", "A", "//"], ["c", "L", "A", "//"], ["e", "r", "G", "//"], ["e", "r", "G", "//"], ["A", "l", "G", "//"], ["A", "l", "G", "//"]]],
+                    double_stroke: [[["c", "r", "G", "//"], ["c", "r", "G", "//"], ["e", "l", "G", "//"], ["e", "l", "G", "//"], ["A", "r", "G", "//"], ["A", "r", "G", "//"]]],
+                    para_special_1: [[["c", "r", "G", "//"], ["c", "l", "G", "//"], ["e", "r", "G", "//"], ["e", "r", "G", "//"], ["e", "l", "G", "//"], ["c", "r", "G", "//"]]],
+                    para_special_2: [[["e", "l", "G", "//"], ["e", "l", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["A", "r", "G", "//"], ["A", "r", "G", "//"]]]
                 }
             }
         };
 
-        // --- 手順・強弱・オーケストレーションガード ---
+        // --- 手順・オーケストレーションガード ---
         function applyStickingGuard(fullPhrase) {
             let lastHand = "";
             let lastActualPitch = ""; 
-            let lastHandIdx = -1; // ダブルの1打目を遡って修正するためのインデックス
+            let lastHandIdx = -1;
             let handCount = 0;
             let kickCount = 0;
 
@@ -205,13 +243,10 @@
 
                 if (hand !== "") {
                     if (hand === lastHand) {
-                        // ダブル検出時は、今回(2打目)だけでなく前回(1打目)もアクセントを解除（ダブルは原則アクセントなし）
-                        hit[2] = 'G'; 
-                        if (lastHandIdx !== -1) {
-                            fullPhrase[lastHandIdx][2] = 'G';
-                        }
+                        hit[2] = 'G'; // ダブルは原則ゴースト
+                        if (lastHandIdx !== -1) fullPhrase[lastHandIdx][2] = 'G'; 
 
-                        // 移動ダブル禁止ロジック
+                        // 移動ダブル禁止
                         let targetPitch = lastActualPitch;
                         if (!targetPitch.includes("style=x")) {
                             if (!hit[0].includes("z")) hit[0] = targetPitch;
@@ -242,6 +277,7 @@
                     lastActualPitch = hit[0];
                 }
 
+                // キック連打制限
                 if (hasKick) {
                     kickCount++;
                     if (kickCount > 2) {
@@ -274,42 +310,33 @@
                     wordsArr.push("_");
                     return note + (duration || (force16th ? "/" : ""));
                 }
+                
                 let velocity = (dyn === 'A') ? "!ff!" : "!ppp!";
                 let prefix = (dyn === 'A') ? "!>!" + velocity : velocity;
+                
                 let displaySticking = sticking;
-
                 if (displaySticking) {
-                    // 手(R or L)がある場合は K を省略して表記のズレを防ぐ
-                    if (/[RL]/i.test(displaySticking)) {
-                        displaySticking = displaySticking.replace(/\+?K/gi, "");
-                    }
-
-                    if (dyn !== 'A') {
-                        displaySticking = displaySticking.toLowerCase();
+                    // Kの省略
+                    if (/[RL]/i.test(displaySticking)) displaySticking = displaySticking.replace(/\+?K/gi, "");
+                    if (displaySticking.toUpperCase() === "K") {
+                        displaySticking = "K";
                     } else {
-                        displaySticking = displaySticking.toUpperCase();
+                        displaySticking = (dyn !== 'A') ? displaySticking.toLowerCase() : displaySticking.toUpperCase();
                     }
                 }
-
                 wordsArr.push(displaySticking || "_");
-                let suffix = duration || (force16th ? "/" : "");
-                return prefix + note + suffix;
+                return prefix + note + (duration || (force16th ? "/" : ""));
             };
 
             if (slot.length === 1) {
                 notes = processNote(slot[0]);
             } else if (feel === 'swing') {
-                notes = "(3" + slot.map(s => processNote(s)).join("");
+                if (slot.length === 6) notes = "(6" + slot.map(s => processNote(s)).join("");
+                else if (slot.length === 4) notes = slot.map(s => processNote(s)).join("");
+                else notes = "(3" + slot.map(s => processNote(s)).join("");
             } else if (slot.length === 3) {
-                // --- 修正: Extremeの三連符の「3」を表示 ---
-                // Straightフィールにおいて、Orchestrationの「8分+16分2つ」は三連符にしない
-                // それ以外の3要素（Extremeの三連グリッチ等）は (3 を付与
-                const has16thSubDivision = slot.some(s => s[3] === "/");
-                if (has16thSubDivision) {
-                    notes = slot.map(s => processNote(s)).join("");
-                } else {
-                    notes = "(3" + slot.map(s => processNote(s)).join("");
-                }
+                const has16th = slot.some(s => s[3] === "/");
+                notes = has16th ? slot.map(s => processNote(s)).join("") : "(3" + slot.map(s => processNote(s)).join("");
             } else {
                 notes = slot.map(s => processNote(s, slot.length === 4)).join("");
             }
@@ -321,71 +348,103 @@
             const generateSystem = (bars) => {
                 let flatPhrase = [];
                 bars.forEach((barSkeleton, barIdx) => {
+                    let prevWas6 = false;
                     barSkeleton.forEach((beatSkeleton, beatIdx) => {
                         const { key, isCrash, variationIndex } = beatSkeleton;
                         const feelConfig = MOTIF_LIBRARY[feel];
+                        
                         let keyToUse = key;
                         if (difficulty === 'extreme' && feel === 'straight' && key === 'rest') {
-                            if (variationIndex % 100 < 25) keyToUse = 'glitch_triplet';
-                            else keyToUse = 'glitch_fill';
+                            keyToUse = (variationIndex % 100 < 25) ? 'glitch_triplet' : 'glitch_fill';
                         }
+                        
                         const keyConfig = feelConfig[keyToUse] || feelConfig['rest'];
-                        let targetDiff = (feel === 'swing' && difficulty === 'extreme') ? 'advanced' : difficulty;
-                        const motifOptions = keyConfig[targetDiff] || keyConfig['basic'];
-                        let motifDef = motifOptions[variationIndex % motifOptions.length];
-                        let motif = JSON.parse(JSON.stringify(motifDef));
+                        
+                        let options;
+                        if (feel === 'swing' && difficulty === 'advanced_elvin') {
+                            // 確率制御
+                            let prob = 0;
+                            if (barIdx === 0) prob = 0.01;
+                            else if (barIdx === 1) prob = 0.05;
+                            else if (barIdx === 2) prob = 0.08;
+                            else if (barIdx === 3) prob = 0.10;
+
+                            let isComplex = Math.random() < prob;
+                            
+                            if (isComplex) {
+                                let pool = [];
+                                if (keyConfig.advanced_elvin) {
+                                    pool = keyConfig.advanced_elvin.filter(m => m.length === 4 || m.length === 6);
+                                }
+                                if (pool.length === 0 || Math.random() < 0.5) {
+                                    let sixPool = [...feelConfig.six_tuples.six_stroke, ...feelConfig.six_tuples.paradiddle_diddle, ...feelConfig.six_tuples.double_stroke, ...feelConfig.six_tuples.para_special_1];
+                                    options = [sixPool[variationIndex % sixPool.length]];
+                                } else {
+                                    options = [pool[variationIndex % pool.length]];
+                                }
+                                prevWas6 = (options[0].length === 6);
+                            } else {
+                                options = keyConfig.advanced_elvin || keyConfig.advanced || keyConfig.basic;
+                                options = options.filter(m => m.length === 3);
+                                if (options.length === 0) options = keyConfig.basic;
+                                prevWas6 = false;
+                            }
+                        } else {
+                            options = keyConfig[difficulty] || keyConfig['basic'];
+                        }
+
+                        if (!options || options.length === 0) {
+                            options = keyConfig['basic'] || feelConfig['rest']['basic'];
+                        }
+
+                        let motif = JSON.parse(JSON.stringify(options[variationIndex % options.length]));
+                        
+                        // Basicモード防護ガード
                         if (difficulty === 'basic') {
                             motif.forEach(step => {
                                 if (!step[0].includes("z")) {
                                     step[0] = "c";
-                                    if (step[1]) {
-                                        step[1] = step[1].replace(/\+K/g, "").replace(/K/g, "").replace(/k/g, "");
-                                        if (step[1] === "") step[1] = (step[2] === 'A' ? "R" : "r");
-                                    }
+                                    if (step[1]) step[1] = step[1].replace(/\+K/g, "").replace(/K/g, "");
                                 }
                             });
                         }
+
                         if (difficulty !== 'basic' && isCrash) {
-                            for (let i = 0; i < motif.length; i++) {
-                                if (motif[i][2] === 'A') {
-                                    motif[i][0] = "[!style=x!fF]";
-                                    motif[i][1] = (motif[i][1] || "R").replace(/\+K/g, "").replace(/K/g, "").replace(/k/g, "") + "+K";
-                                    break;
-                                }
+                            for (let i = 0; i < motif.length; i++) { 
+                                if (motif[i][2] === 'A') { 
+                                    motif[i][0] = "[!style=x!fF]"; 
+                                    motif[i][1] = (motif[i][1] || "R").replace(/\+?K/gi, "") + "+K"; 
+                                    break; 
+                                } 
                             }
                         }
                         flatPhrase.push({ motif, isBarEnd: (beatIdx === 3) });
                     });
                 });
-                let allSteps = [];
-                flatPhrase.forEach(m => allSteps.push(...m.motif));
+                
+                let allSteps = []; flatPhrase.forEach(m => allSteps.push(...m.motif));
                 applyStickingGuard(allSteps);
-                let notesStr = "";
-                let wordsStr = "w: ";
-                let stepIdx = 0;
+                
+                let notesStr = "", wordsStr = "w: ", stepIdx = 0;
                 flatPhrase.forEach(m => {
-                    let motifToProcess = [];
-                    for(let i=0; i<m.motif.length; i++) motifToProcess.push(allSteps[stepIdx++]);
+                    let motifToProcess = []; for(let i=0; i<m.motif.length; i++) motifToProcess.push(allSteps[stepIdx++]);
                     let { notes, words } = slotToNotesAndWords(motifToProcess, feel);
-                    notesStr += notes + " ";
-                    if (words) wordsStr += words + " ";
-                    if (m.isBarEnd) { notesStr += "| "; wordsStr += "| "; }
+                    notesStr += notes + " "; wordsStr += words + " "; if (m.isBarEnd) { notesStr += "| "; wordsStr += "| "; }
                 });
                 return notesStr + "\n" + wordsStr + "\n";
             };
-            let finalAbc = generateSystem(skeleton);
+            let body = generateSystem(skeleton);
             if (isTradeMode) {
-                finalAbc += "z2 z2 z2 z2 | z2 z2 z2 z2 | z2 z2 z2 z2 | z2 z2 z2 z2 |] \n";
-                finalAbc += "w: | | | | \n";
+                body += "z2 z2 z2 z2 | z2 z2 z2 z2 | z2 z2 z2 z2 | z2 z2 z2 z2 |] \nw: | | | | \n";
             } else {
-                finalAbc = finalAbc.trim().slice(0, -1) + "] \n";
+                body = body.trim().slice(0, -1) + "] \n";
             }
-            return finalAbc;
+            return body;
         }
 
         const App = () => {
-            const [difficulty, setDifficulty] = useState('basic');
             const [feel, setFeel] = useState('straight');
+            const [difficulty, setDifficulty] = useState('basic');
             const [isTradeMode, setIsTradeMode] = useState(false);
             const [skeleton, setSkeleton] = useState(null);
             const [abcString, setAbcString] = useState("");
@@ -398,33 +457,23 @@
                 if (context && context.state === 'suspended') await context.resume();
             };
 
-            useEffect(() => {
-                generateNewSkeleton();
-                if (feel === 'swing' && difficulty === 'extreme') setDifficulty('advanced');
+            useEffect(() => { 
+                generateNewSkeleton(); 
+                if (difficulty === 'extreme' || difficulty === 'advanced_elvin') {
+                    setDifficulty(feel === 'straight' ? 'extreme' : 'advanced_elvin');
+                }
             }, [feel]);
 
             const generateNewSkeleton = () => {
                 unlockAudio();
                 const accentKeys = Object.keys(MOTIF_LIBRARY[feel]).filter(k => k.startsWith('acc'));
-                let newSkeleton = [];
-                let prevWasRest = false;
+                let newSkeleton = [], prevWasRest = false;
                 for (let bar = 0; bar < 4; bar++) {
                     let barSkeleton = [];
                     for (let beat = 0; beat < 4; beat++) {
-                        let key = "";
-                        if (prevWasRest) {
-                            key = accentKeys[Math.floor(Math.random() * accentKeys.length)];
-                            prevWasRest = false;
-                        } else {
-                            if (Math.random() < 0.3) {
-                                key = 'rest';
-                                prevWasRest = true;
-                            } else {
-                                key = accentKeys[Math.floor(Math.random() * accentKeys.length)];
-                                prevWasRest = false;
-                            }
-                        }
-                        let isCrash = (beat === 0 && key !== 'rest') ? (bar === 0 ? 0.8 : 0.4) : 0;
+                        let key = (prevWasRest || Math.random() >= 0.3) ? accentKeys[Math.floor(Math.random() * accentKeys.length)] : 'rest';
+                        prevWasRest = (key === 'rest');
+                        let isCrash = (beat === 0 && key !== 'rest' && Math.random() < (bar === 0 ? 0.8 : 0.4));
                         barSkeleton.push({ key, isCrash, variationIndex: Math.floor(Math.random() * 100) });
                     }
                     newSkeleton.push(barSkeleton);
@@ -435,42 +484,33 @@
             useEffect(() => {
                 if (skeleton) {
                     const body = skeletonToAbc(skeleton, difficulty, feel, isTradeMode);
-                    if (body) {
-                        setAbcString(`X:1\nT:D.R.O.P. Solo Etude\nM:4/4\nL:1/8\nQ:1/4=90\nK:perc\n%%MIDI channel 10\n%%MIDI drummap f 49\n%%MIDI drummap e 45\n%%MIDI drummap c 38\n%%MIDI drummap A 43\n%%MIDI drummap F 36\n%%articulation u\n%%stretchlast 1\n%%vocalfont sans-serif 16\n%%stafflines 5\n` + body);
-                    }
+                    setAbcString(`X:1\nT:D.R.O.P. Solo Etude\nM:4/4\nL:1/8\nQ:1/4=90\nK:perc\n%%MIDI channel 10\n%%MIDI drummap f 49\n%%MIDI drummap e 45\n%%MIDI drummap c 38\n%%MIDI drummap A 43\n%%MIDI drummap F 36\n%%articulation u\n%%stretchlast 1\n%%stafflines 5\n` + body);
                 }
             }, [skeleton, difficulty, feel, isTradeMode]);
 
             useEffect(() => {
                 if (abcString && scoreRef.current) {
-                    const rendered = ABCJS.renderAbc(scoreRef.current, abcString, { responsive: 'resize', add_classes: true, staffwidth: 900, scale: 1.3, paddingtop: 15, paddingbottom: 40 });
+                    const rendered = ABCJS.renderAbc(scoreRef.current, abcString, { responsive: 'resize', add_classes: true, staffwidth: 900, scale: 1.3 });
                     setVisualObj(rendered[0]);
                 }
             }, [abcString]);
 
             useEffect(() => {
-                if (visualObj && ABCJS.synth.supportsAudio() && audioContainerRef.current) {
+                if (visualObj && audioContainerRef.current) {
                     audioContainerRef.current.innerHTML = "";
                     const controller = new ABCJS.synth.SynthController();
                     controller.load(audioContainerRef.current, null, { displayLoop: true, displayRestart: true, displayPlay: true, displayProgress: true, displayWarp: true });
-                    controller.disable(true);
-                    new ABCJS.synth.CreateSynth().init({ visualObj: visualObj }).then(() => {
-                        controller.setTune(visualObj, false, { chordsOff: true, midiChannel: 10 });
-                    }).catch(console.error);
+                    new ABCJS.synth.CreateSynth().init({ visualObj: visualObj }).then(() => controller.setTune(visualObj, false, { chordsOff: true, midiChannel: 10 }));
                 }
             }, [visualObj]);
-
-            const exportToPDF = () => { window.print(); };
 
             return (
                 <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-3 md:p-6 mt-2 md:mt-4 printable-area">
                     <div className="flex justify-between items-center mb-4 md:mb-6">
                         <h1 className="text-xl md:text-3xl font-bold text-zinc-800">D.R.O.P. Solo Etude</h1>
-                        <button onClick={exportToPDF} className="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-3 md:py-2 md:px-4 rounded-md shadow-sm transition-colors text-xs md:text-sm flex items-center gap-2">
-                            <span>📄 PDF保存 / 印刷</span>
-                        </button>
+                        <button onClick={() => window.print()} className="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-3 rounded-md shadow-sm transition-colors text-xs md:text-sm">📄 PDF保存 / 印刷</button>
                     </div>
-                    <div className="no-print flex flex-col gap-4 mb-6 bg-zinc-50 p-3 md:p-4 rounded-lg border border-zinc-200">
+                    <div className="no-print flex flex-col gap-4 mb-6 bg-zinc-50 p-4 rounded-lg border border-zinc-200">
                         <div className="flex flex-wrap justify-center gap-3">
                             <div className="flex bg-white rounded-md border border-zinc-300 overflow-hidden shadow-sm">
                                 <button onClick={() => { unlockAudio(); setFeel('straight'); }} className={`px-4 py-2 text-sm font-medium transition-colors ${feel === 'straight' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>Straight</button>
@@ -479,7 +519,9 @@
                             <div className="flex bg-white rounded-md border border-zinc-300 overflow-hidden shadow-sm">
                                 <button onClick={() => { unlockAudio(); setDifficulty('basic'); }} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === 'basic' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>1. Basic</button>
                                 <button onClick={() => { unlockAudio(); setDifficulty('advanced'); }} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === 'advanced' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>2. Orchestration</button>
-                                {feel === 'straight' && <button onClick={() => { unlockAudio(); setDifficulty('extreme'); }} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === 'extreme' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>3. Extreme (Glitch)</button>}
+                                <button onClick={() => { unlockAudio(); setDifficulty(feel === 'straight' ? 'extreme' : 'advanced_elvin'); }} className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${difficulty === (feel === 'straight' ? 'extreme' : 'advanced_elvin') ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>
+                                    {feel === 'straight' ? '3. Extreme' : '3. Advanced'}
+                                </button>
                             </div>
                         </div>
                         <div className="flex flex-wrap justify-center gap-3 items-center">
@@ -490,21 +532,8 @@
                             <button onClick={generateNewSkeleton} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md shadow-sm transition-colors text-sm">🔄 New Phrasing</button>
                         </div>
                     </div>
-                    <div className="bg-white border-2 border-zinc-100 rounded-lg p-2 md:p-4 overflow-x-auto min-h-[150px]">
-                        <div id="score-container" ref={scoreRef}></div>
-                    </div>
-                    <div className="no-print mt-4 bg-slate-200 border border-slate-300 rounded-lg p-2 w-full max-w-2xl mx-auto shadow-inner">
-                        <div ref={audioContainerRef} className="w-full"></div>
-                    </div>
-                    <div className="no-print mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-4">
-                            <h3 className="font-bold text-zinc-800 mb-2 border-b border-indigo-200 pb-1 text-sm">🥁 手順の読み方</h3>
-                            <ul className="text-xs text-zinc-600 space-y-1 font-mono bg-white p-2 rounded border border-zinc-100 shadow-inner">
-                                <li><strong>R / L / K :</strong> アクセント (強)</li>
-                                <li><strong>r / l :</strong> ゴーストノート (弱)</li>
-                            </ul>
-                        </div>
-                    </div>
+                    <div className="bg-white border-2 border-zinc-100 rounded-lg p-2 md:p-4 overflow-x-auto min-h-[150px]"><div id="score-container" ref={scoreRef}></div></div>
+                    <div className="no-print mt-4 bg-slate-200 border border-slate-300 rounded-lg p-2 w-full max-w-2xl mx-auto shadow-inner"><div ref={audioContainerRef} className="w-full"></div></div>
                 </div>
             );
         };
