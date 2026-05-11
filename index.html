@@ -41,7 +41,7 @@
         .abcjs-inline-audio .abcjs-tempo-wrapper,
         .abcjs-inline-audio .abcjs-midi-tempo,
         .abcjs-inline-audio .abcjs-label {
-            color: #18181b !important;
+            color: #f8fafc !important; /* 黒っぽい背景に合わせて文字色を白系に修正 */
             font-weight: 600 !important;
             display: inline-block !important;
         }
@@ -74,7 +74,7 @@
         const MOTIF_LIBRARY = {
             straight: {
                 rest: {
-                    basic: [[["z2", "", ""]]],
+                    basic: [[["c", "r", "G"], ["c", "l", "G"], ["c", "r", "G"], ["c", "l", "G"]]],
                     advanced: [
                         [["[!style=x!fF]", "R+K", "A"], ["c", "r", "G", "/"], ["c", "l", "G", "/"]], 
                         [["[!style=x!fF]", "R+K", "A"], ["e", "r", "G", "/"], ["e", "l", "G", "/"]], 
@@ -157,7 +157,7 @@
             },
             swing: {
                 rest: { 
-                    basic: [[["z2", "", ""]]], 
+                    basic: [[["c", "r", "G"], ["c", "l", "G"], ["c", "r", "G"]]],
                     // Orchestration: 1拍目クラッシュ + 3拍目フィラー
                     advanced: [
                         [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["c", "l", "G"]],
@@ -484,7 +484,7 @@
             useEffect(() => {
                 if (skeleton) {
                     const body = skeletonToAbc(skeleton, difficulty, feel, isTradeMode);
-                    setAbcString(`X:1\nT:D.R.O.P. Solo Etude\nM:4/4\nL:1/8\nQ:1/4=90\nK:perc\n%%MIDI channel 10\n%%MIDI drummap f 49\n%%MIDI drummap e 45\n%%MIDI drummap c 38\n%%MIDI drummap A 43\n%%MIDI drummap F 36\n%%articulation u\n%%stretchlast 1\n%%stafflines 5\n` + body);
+                    setAbcString(`X:1\nT:D.R.O.P. Solo Etude\nM:4/4\nL:1/8\nQ:1/4=120\nK:perc\n%%MIDI channel 10\n%%MIDI drummap f 49\n%%MIDI drummap e 45\n%%MIDI drummap c 38\n%%MIDI drummap A 43\n%%MIDI drummap F 36\n%%articulation u\n%%stretchlast 1\n%%stafflines 5\n` + body);
                 }
             }, [skeleton, difficulty, feel, isTradeMode]);
 
