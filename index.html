@@ -76,27 +76,36 @@
                 rest: {
                     basic: [[["c", "r", "G"], ["c", "l", "G"], ["c", "r", "G"], ["c", "l", "G"]]],
                     advanced: [
-                        [["[!style=x!fF]", "R+K", "A"], ["c", "r", "G", "/"], ["c", "l", "G", "/"]], 
-                        [["[!style=x!fF]", "R+K", "A"], ["e", "r", "G", "/"], ["e", "l", "G", "/"]], 
-                        [["[!style=x!fF]", "R+K", "A"], ["A", "r", "G", "/"], ["A", "l", "G", "/"]], 
-                        [["[!style=x!fF]", "R+K", "A"], ["c", "r", "G", "/"], ["e", "l", "G", "/"]], 
-                        [["[!style=x!fF]", "R+K", "A"], ["e", "r", "G", "/"], ["A", "l", "G", "/"]]  
+                        [["[!style=x!f F]", "R+K", "A"], ["c", "r", "G", "/"], ["c", "l", "G", "/"]], 
+                        [["[!style=x!f F]", "R+K", "A"], ["e", "r", "G", "/"], ["e", "l", "G", "/"]], 
+                        [["[!style=x!f F]", "R+K", "A"], ["A", "r", "G", "/"], ["A", "l", "G", "/"]], 
+                        [["[!style=x!f F]", "R+K", "A"], ["c", "r", "G", "/"], ["e", "l", "G", "/"]], 
+                        [["[!style=x!f F]", "R+K", "A"], ["e", "r", "G", "/"], ["A", "l", "G", "/"]]  
                     ],
-                    extreme: [[["z2", "", ""]]]
+                    extreme: [[["!style=x!g", "R", "G"], ["!style=x!g", "L", "G"], ["!style=x!g", "R", "G"], ["!style=x!g", "L", "G"]]]
                 },
                 glitch_fill: {
                     extreme: [
                         [["c", "r", "G"], ["F", "K", "K"], ["F", "K", "K"], ["c", "l", "G"]], 
                         [["F", "K", "K"], ["c", "r", "G"], ["c", "l", "G"], ["F", "K", "K"]], 
                         [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K", "/"], ["F", "K", "K", "/"]],
-                        [["c", "r", "G"], ["c", "l", "G"], ["c", "r", "G"]] 
+                        [["!style=x!g", "r", "G", "//"], ["!style=x!g", "l", "G", "//"], ["!style=x!g", "r", "G", "//"], ["!style=x!g", "l", "G", "//"], ["F", "K", "K", "/"], ["F", "K", "K", "/"]],
+                        [["c", "r", "G"], ["c", "l", "G"], ["c", "r", "G"]],
+                        // 均等な6連符
+                        [["c", "R", "A"], ["c", "l", "G"], ["c", "r", "G"], ["c", "r", "G"], ["c", "l", "G"], ["c", "l", "G"]],
+                        [["c", "R", "A"], ["c", "l", "G"], ["c", "r", "G"], ["c", "l", "G"], ["F", "K", "K"], ["F", "K", "K"]],
+                        [["!style=x!g", "R", "G"], ["!style=x!g", "l", "G"], ["!style=x!g", "r", "G"], ["!style=x!g", "l", "G"], ["F", "K", "K"], ["F", "K", "K"]]
                     ]
                 },
                 glitch_triplet: {
                     extreme: [
                         [["c", "r", "G"], ["c", "l", "G"], ["F", "K", "K"]], 
                         [["F", "K", "K"], ["c", "r", "G"], ["c", "l", "G"]], 
-                        [["c", "r", "G"], ["F", "K", "K"], ["c", "l", "G"]]  
+                        [["c", "r", "G"], ["F", "K", "K"], ["c", "l", "G"]],
+                        [["!style=x!g", "r", "G"], ["!style=x!g", "l", "G"], ["F", "K", "K"]],
+                        // 6連符リニア
+                        [["c", "R", "A"], ["c", "l", "G"], ["F", "K", "K"], ["F", "K", "K"], ["c", "r", "G"], ["c", "l", "G"]],
+                        [["!style=x!g", "R", "G"], ["!style=x!g", "l", "G"], ["F", "K", "K"], ["F", "K", "K"], ["!style=x!g", "r", "G"], ["!style=x!g", "l", "G"]]
                     ]
                 },
                 acc_1: {
@@ -108,8 +117,10 @@
                         [["e", "R", "A"], ["c", "L", "G"], ["A", "r", "G"], ["A", "l", "G"]]
                     ],
                     extreme: [
+                        // アクセントは1打目
                         [["c", "R", "A"], ["c", "L", "G"], ["F", "K", "K"], ["F", "K", "K"]], 
-                        [["c", "R", "A"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K", "/"]],
+                        [["c", "R", "A", "/"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K", "/"]],
+                        [["c", "R", "A"], ["!style=x!g", "l", "G", "//"], ["!style=x!g", "r", "G", "//"], ["!style=x!g", "l", "G", "//"], ["!style=x!g", "r", "G", "//"], ["F", "K", "K", "/"]],
                         [["c", "R", "A"], ["c", "r", "G"], ["c", "l", "G"]] 
                     ]
                 },
@@ -122,8 +133,10 @@
                         [["A", "r", "G"], ["e", "L", "A"], ["c", "R", "G"], ["c", "L", "G"]]
                     ],
                     extreme: [
+                        // アクセントは2打目
                         [["F", "K", "K"], ["c", "L", "A"], ["c", "R", "G"], ["c", "R", "G"]], 
-                        [["F", "K", "K"], ["c", "L", "A"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"]],
+                        [["F", "K", "K", "/"], ["c", "L", "A", "/"], ["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"]],
+                        [["F", "K", "K", "/"], ["!style=x!g", "L", "A", "/"], ["!style=x!g", "r", "G", "//"], ["!style=x!g", "l", "G", "//"], ["!style=x!g", "r", "G", "//"], ["!style=x!g", "l", "G", "//"]],
                         [["c", "r", "G"], ["c", "L", "A"], ["c", "r", "G"]] 
                     ]
                 },
@@ -136,8 +149,10 @@
                         [["e", "R", "G"], ["c", "L", "G"], ["c", "R", "A"], ["A", "l", "G"]]
                     ],
                     extreme: [
-                        [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["c", "R", "A"], ["c", "L", "G"]],
-                        [["F", "K", "K"], ["c", "R", "A"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["c", "r", "G", "//"], ["c", "r", "G", "//"]],
+                        // アクセントは3打目
+                        [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["c", "R", "A", "/"], ["c", "L", "G", "/"]],
+                        [["F", "K", "K", "/"], ["c", "l", "G", "/"], ["c", "R", "A", "/"], ["c", "r", "G", "//"], ["c", "r", "G", "//"]],
+                        [["!style=x!g", "r", "G", "//"], ["!style=x!g", "l", "G", "//"], ["!style=x!g", "r", "G", "//"], ["!style=x!g", "l", "G", "//"], ["!style=x!g", "R", "A", "/"], ["!style=x!g", "L", "G", "/"]],
                         [["F", "K", "K"], ["c", "l", "G"], ["c", "R", "A"]] 
                     ]
                 },
@@ -150,7 +165,9 @@
                         [["e", "R", "G"], ["A", "l", "G"], ["A", "r", "G"], ["c", "L", "A"]]
                     ],
                     extreme: [
-                        [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K"], ["c", "L", "A"]], 
+                        // アクセントは4打目
+                        [["c", "r", "G", "//"], ["c", "r", "G", "//"], ["c", "l", "G", "//"], ["c", "l", "G", "//"], ["F", "K", "K", "/"], ["c", "L", "A", "/"]], 
+                        [["!style=x!g", "r", "G", "//"], ["!style=x!g", "l", "G", "//"], ["!style=x!g", "r", "G", "//"], ["!style=x!g", "l", "G", "//"], ["F", "K", "K", "/"], ["!style=x!g", "L", "A", "/"]], 
                         [["c", "r", "G"], ["F", "K", "K"], ["c", "L", "A"]] 
                     ]
                 }
@@ -160,11 +177,11 @@
                     basic: [[["c", "r", "G"], ["c", "l", "G"], ["c", "r", "G"]]],
                     // Orchestration: 1拍目クラッシュ + 3拍目フィラー
                     advanced: [
-                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["c", "l", "G"]],
-                        [["[!style=x!fF]", "R+K", "A"], ["z", "", ""], ["e", "l", "G"]]
+                        [["[!style=x!f F]", "R+K", "A"], ["z", "", ""], ["c", "l", "G"]],
+                        [["[!style=x!f F]", "R+K", "A"], ["z", "", ""], ["e", "l", "G"]]
                     ],
                     advanced_elvin: [
-                        [["[!style=x!fF]", "R+K", "A"], ["c", "l", "G"], ["A", "r", "G"]],
+                        [["[!style=x!f F]", "R+K", "A"], ["c", "l", "G"], ["A", "r", "G"]],
                         [["e", "R", "A"], ["c", "l", "G"], ["F", "K", "G"]],
                         [["c", "R", "A", "/"], ["e", "l", "G", "/"], ["A", "r", "G", "/"], ["F", "K", "G", "/"]]
                     ]
@@ -248,8 +265,8 @@
 
                         // 移動ダブル禁止
                         let targetPitch = lastActualPitch;
-                        if (!targetPitch.includes("style=x")) {
-                            if (!hit[0].includes("z")) hit[0] = targetPitch;
+                        if (!targetPitch.includes("f") && !targetPitch.includes("g")) {
+                            if (!hit[0].includes("z") && !hit[0].includes("f") && !hit[0].includes("g")) hit[0] = targetPitch;
                         }
                         
                         handCount++;
@@ -330,13 +347,15 @@
 
             if (slot.length === 1) {
                 notes = processNote(slot[0]);
+            } else if (slot.length === 6) {
+                const hasDuration = slot.some(s => s[3] && s[3] !== "");
+                notes = hasDuration ? slot.map(s => processNote(s)).join("") : "(6" + slot.map(s => processNote(s)).join("");
             } else if (feel === 'swing') {
-                if (slot.length === 6) notes = "(6" + slot.map(s => processNote(s)).join("");
-                else if (slot.length === 4) notes = slot.map(s => processNote(s)).join("");
+                if (slot.length === 4) notes = slot.map(s => processNote(s)).join("");
                 else notes = "(3" + slot.map(s => processNote(s)).join("");
             } else if (slot.length === 3) {
-                const has16th = slot.some(s => s[3] === "/");
-                notes = has16th ? slot.map(s => processNote(s)).join("") : "(3" + slot.map(s => processNote(s)).join("");
+                const hasDuration = slot.some(s => s[3] && s[3] !== "");
+                notes = hasDuration ? slot.map(s => processNote(s)).join("") : "(3" + slot.map(s => processNote(s)).join("");
             } else {
                 notes = slot.map(s => processNote(s, slot.length === 4)).join("");
             }
@@ -410,12 +429,20 @@
                         }
 
                         if (difficulty !== 'basic' && isCrash) {
+                            let crashApplied = false;
                             for (let i = 0; i < motif.length; i++) { 
                                 if (motif[i][2] === 'A') { 
-                                    motif[i][0] = "[!style=x!fF]"; 
+                                    motif[i][0] = "[!style=x!f F]"; 
                                     motif[i][1] = (motif[i][1] || "R").replace(/\+?K/gi, "") + "+K"; 
+                                    crashApplied = true;
                                     break; 
                                 } 
+                            }
+                            // Extreme等でアクセントがないフレーズが選ばれた場合、強制的に1打目をクラッシュにする
+                            if (!crashApplied && motif.length > 0) {
+                                motif[0][0] = "[!style=x!f F]";
+                                motif[0][1] = (motif[0][1] || "R").replace(/\+?K/gi, "") + "+K";
+                                motif[0][2] = 'A';
                             }
                         }
                         flatPhrase.push({ motif, isBarEnd: (beatIdx === 3) });
@@ -484,7 +511,7 @@
             useEffect(() => {
                 if (skeleton) {
                     const body = skeletonToAbc(skeleton, difficulty, feel, isTradeMode);
-                    setAbcString(`X:1\nT:D.R.O.P. Solo Etude\nM:4/4\nL:1/8\nQ:1/4=120\nK:perc\n%%MIDI channel 10\n%%MIDI drummap f 49\n%%MIDI drummap e 45\n%%MIDI drummap c 38\n%%MIDI drummap A 43\n%%MIDI drummap F 36\n%%articulation u\n%%stretchlast 1\n%%stafflines 5\n` + body);
+                    setAbcString(`X:1\nT:D.R.O.P. Solo Etude\nM:4/4\nL:1/8\nQ:1/4=120\nK:perc\n%%MIDI channel 10\n%%MIDI drummap g 42\n%%MIDI drummap f 49\n%%MIDI drummap e 45\n%%MIDI drummap c 38\n%%MIDI drummap A 43\n%%MIDI drummap F 36\n%%articulation u\n%%stretchlast 1\n%%stafflines 5\n` + body);
                 }
             }, [skeleton, difficulty, feel, isTradeMode]);
 
