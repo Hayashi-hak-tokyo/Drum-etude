@@ -26,13 +26,11 @@
         .abcjs-inline-audio { max-width: 100%; padding: 10px; border-radius: 8px; }
 
         /* 不要なテキスト装飾や強弱記号の文字を非表示にする */
-        #score-container svg .abcjs-decoration, 
-        #score-container svg .abcjs-dynamics, 
-        #score-container svg .abcjs-annotation {
+        .abcjs-decoration, .abcjs-dynamics {
             display: none !important;
         }
         
-        /* アクセント記号のみを表示し、赤くする */
+        /* アクセント記号を赤くして視認性を高める */
         .abcjs-articulation {
             fill: #ef4444 !important;
             stroke: #ef4444 !important;
@@ -41,7 +39,7 @@
         .abcjs-inline-audio .abcjs-tempo-wrapper,
         .abcjs-inline-audio .abcjs-midi-tempo,
         .abcjs-inline-audio .abcjs-label {
-            color: #1e293b !important; 
+            color: #18181b !important; 
             font-weight: 600 !important;
             display: inline-block !important;
         }
@@ -70,6 +68,8 @@
         const { useState, useEffect, useRef } = React;
 
         // --- MOTIF LIBRARY (Strict Accent Alignment & Swing Focus) ---
+        // Basic, Advanced, Extreme(Legends) の全てのフレーズが
+        // 物理的なアクセント位置（1打目、2打目、3打目）ごとに厳密にカテゴライズされています。
         const MOTIF_LIBRARY = {
             swing: {
                 rest: { 
@@ -80,16 +80,14 @@
                     ],
                     legend: [
                         [["c", "r", "G"], ["e", "l", "G"], ["A", "r", "G"], ["F", "K", "G"]],
-                        [["c", "r", "G"], ["c", "r", "G"], ["e", "l", "G"], ["e", "l", "G"], ["A", "r", "G"], ["A", "r", "G"]],
-                        // Mark Guiliana: 高速リニアの6連符 (K R L K R L)
-                        [["F", "K", "G"], ["c", "r", "G"], ["c", "l", "G"], ["F", "K", "G"], ["e", "r", "G"], ["c", "l", "G"]]
+                        [["c", "r", "G"], ["c", "r", "G"], ["e", "l", "G"], ["e", "l", "G"], ["A", "r", "G"], ["A", "r", "G"]]
                     ]
                 },
-                acc_1: { 
+                acc_1: { // 1打目（拍の頭）にアクセントがあるグループ
                     basic: [[["c", "R", "A"], ["c", "L", "G"], ["c", "R", "G"]]],
                     advanced: [
                         [["c", "R", "A"], ["A", "l", "G"], ["c", "R", "G"]],
-                        [["e", "R", "A"], ["c", "L", "G"], ["A", "r", "G"]]
+                        [["c", "R", "A"], ["e", "L", "G"], ["A", "r", "G"]] // タムをアクセントにしない
                     ],
                     legend: [
                         // Tony Williams
@@ -97,100 +95,95 @@
                         // Philly Joe Jones (頭アクセントの6連符)
                         [["c", "R", "A"], ["c", "l", "G"], ["c", "r", "G"], ["c", "r", "G"], ["c", "l", "G"], ["c", "l", "G"]],
                         [["c", "R", "A"], ["c", "l", "G"], ["e", "r", "G"], ["e", "r", "G"], ["A", "l", "G"], ["A", "l", "G"]],
-                        
                         // バリエーション: r l l r l k (R L L R L K)
                         [["c", "R", "A"], ["c", "l", "G"], ["c", "l", "G"], ["e", "r", "G"], ["c", "l", "G"], ["F", "K", "G"]],
-                        [["e", "R", "A"], ["c", "l", "G"], ["c", "l", "G"], ["A", "r", "G"], ["c", "l", "G"], ["F", "K", "G"]],
-                        [["[!style=x!f F]", "R", "A"], ["c", "l", "G"], ["c", "l", "G"], ["e", "r", "G"], ["c", "l", "G"], ["F", "K", "G"]],
-                        
+                        [["c", "R", "A"], ["e", "l", "G"], ["e", "l", "G"], ["A", "r", "G"], ["c", "l", "G"], ["F", "K", "G"]], // 1打目はスネア
+                        [["[!style=x!fF]", "R", "A"], ["c", "l", "G"], ["c", "l", "G"], ["e", "r", "G"], ["c", "l", "G"], ["F", "K", "G"]], 
                         // バリエーション: r l l r r k (R L L R R K)
                         [["c", "R", "A"], ["c", "l", "G"], ["c", "l", "G"], ["c", "r", "G"], ["c", "r", "G"], ["F", "K", "G"]],
-                        [["e", "R", "A"], ["c", "l", "G"], ["c", "l", "G"], ["c", "r", "G"], ["c", "r", "G"], ["F", "K", "G"]], 
-                        [["[!style=x!f F]", "R", "A"], ["c", "l", "G"], ["c", "l", "G"], ["c", "r", "G"], ["c", "r", "G"], ["F", "K", "G"]], 
-                        
+                        [["c", "R", "A"], ["e", "l", "G"], ["e", "l", "G"], ["A", "r", "G"], ["A", "r", "G"], ["F", "K", "G"]], 
+                        [["[!style=x!fF]", "R", "A"], ["c", "l", "G"], ["c", "l", "G"], ["c", "r", "G"], ["c", "r", "G"], ["F", "K", "G"]], 
                         // バリエーション: r l r r k (R L R R K)
                         [["c", "R", "A"], ["c", "l", "G"], ["c", "r", "G"], ["c", "r", "G"], ["F", "K", "G"], ["z", "", ""]],
-                        [["e", "R", "A"], ["c", "l", "G"], ["A", "r", "G"], ["A", "r", "G"], ["F", "K", "G"], ["z", "", ""]], 
-                        [["[!style=x!f F]", "R", "A"], ["c", "l", "G"], ["c", "r", "G"], ["c", "r", "G"], ["F", "K", "G"], ["z", "", ""]],
-                        
+                        [["c", "R", "A"], ["e", "l", "G"], ["A", "r", "G"], ["A", "r", "G"], ["F", "K", "G"], ["z", "", ""]], 
+                        [["[!style=x!fF]", "R", "A"], ["c", "l", "G"], ["c", "r", "G"], ["c", "r", "G"], ["F", "K", "G"], ["z", "", ""]],
                         // Elvin Jones
-                        [["e", "R", "A"], ["F", "K", "G"], ["A", "l", "G"]],
-                        
-                        // Mark Guiliana: スタッター16分音符
+                        [["c", "R", "A"], ["F", "K", "G"], ["A", "l", "G"]],
+                        // Mark Guiliana: 打ち込み風のスタッター16分音符 (R K L L)
                         [["c", "R", "A"], ["F", "K", "G"], ["c", "l", "G"], ["c", "l", "G"]]
                     ]
                 },
-                acc_2: { 
+                acc_2: { // 2打目（真ん中）にアクセントがあるグループ
                     basic: [[["c", "L", "G"], ["c", "R", "A"], ["c", "L", "G"]]],
                     advanced: [
-                        [["A", "l", "G"], ["c", "R", "A"], ["c", "L", "G"]],
-                        [["c", "l", "G"], ["e", "R", "A"], ["A", "l", "G"]]
+                        [["e", "l", "G"], ["c", "R", "A"], ["c", "L", "G"]], 
+                        [["c", "l", "G"], ["c", "R", "A"], ["A", "l", "G"]] 
                     ],
                     legend: [
                         // Roy Haynes
                         [["z", "", ""], ["c", "L", "A"], ["c", "r", "G"]],
                         // Elvin Jones
                         [["F", "K", "G"], ["c", "L", "A"], ["e", "r", "G"]],
-                        // Philly Joe Jones (真ん中アクセントの6連符)
+                        // Philly Joe Jones
                         [["A", "r", "G"], ["e", "l", "G"], ["c", "R", "A"], ["c", "r", "G"], ["F", "K", "G"], ["F", "K", "G"]]
                     ]
                 },
-                acc_3: { 
+                acc_3: { // 3打目（最後）にアクセントがあるグループ
                     basic: [[["c", "R", "G"], ["c", "L", "G"], ["c", "R", "A"]]],
                     advanced: [
-                        [["c", "r", "G"], ["A", "l", "G"], ["c", "R", "A"]],
-                        [["A", "r", "G"], ["c", "l", "G"], ["e", "R", "A"]]
+                        [["c", "r", "G"], ["e", "l", "G"], ["c", "R", "A"]],
+                        [["A", "r", "G"], ["c", "l", "G"], ["c", "R", "A"]]
                     ],
                     legend: [
                         // Art Blakey
                         [["c", "r", "G"], ["c", "l", "G"], ["c", "r", "G"], ["c", "l", "G"], ["c", "r", "G"], ["F", "K", "A"]],
                         // Jack DeJohnette
-                        [["A", "r", "G"], ["F", "K", "G"], ["e", "L", "A"]],
-                        // Philly Joe Jones (最後アクセントの6連符)
-                        [["c", "r", "G"], ["c", "l", "G"], ["c", "l", "G"], ["e", "r", "G"], ["e", "r", "G"], ["A", "L", "A"]],
-                        // Mark Guiliana: ディスプレイスメント
+                        [["A", "r", "G"], ["F", "K", "G"], ["c", "L", "A"]],
+                        // Philly Joe Jones
+                        [["c", "r", "G"], ["c", "l", "G"], ["c", "l", "G"], ["e", "r", "G"], ["e", "r", "G"], ["c", "L", "A"]],
+                        // Mark Guiliana: 拍の最後にずらすディスプレイスメント (K L K R)
                         [["F", "K", "G"], ["c", "l", "G"], ["F", "K", "G"], ["c", "L", "A"]]
                     ]
                 }
             }
         };
 
+        // --- 手順・オーケストレーションガード ---
         function applyStickingGuard(fullPhrase) {
-            let lastHand = "";
-            let lastPitch = ""; 
-            let lastIdx = -1;
-            let handCount = 0;
-            let kickCount = 0;
-
+            let lastHand = "", lastPitch = "", lastIdx = -1, handCount = 0;
             for (let i = 0; i < fullPhrase.length; i++) {
                 let hit = fullPhrase[i];
                 if (!hit || hit[0].includes("z")) continue; 
-
                 let sticking = hit[1] || "";
-                let hasKick = sticking.includes("K");
-                let hand = "";
-                if (sticking.toUpperCase().includes("R")) hand = "R";
-                else if (sticking.toUpperCase().includes("L")) hand = "L";
+                if (typeof sticking !== 'string') sticking = String(sticking);
+
+                let hand = sticking.toUpperCase().includes("R") ? "R" : (sticking.toUpperCase().includes("L") ? "L" : "");
 
                 if (hand !== "") {
                     if (hand === lastHand) {
-                        // 【修正】ダブルストローク時はアクセントを解除してゴーストにする
-                        hit[2] = 'G'; 
-                        if (lastIdx !== -1) fullPhrase[lastIdx][2] = 'G'; 
-
-                        // 【修正】ダブルストローク時は楽器をまたがない
-                        if (!lastPitch.includes("f") && !lastPitch.includes("d") && !hit[0].includes("f") && !hit[0].includes("d") && !hit[0].includes("z")) {
-                            hit[0] = lastPitch;
-                        }
-                        
-                        handCount++;
-                        if (handCount > 2) {
+                        // アクセントが含まれるダブルストロークは物理的に不自然なので、手順を反転させてオルタネイトにする
+                        if (hit[2] === 'A' || (lastIdx !== -1 && fullPhrase[lastIdx][2] === 'A')) {
                             let nb = (hand === "R") ? "L" : "R";
                             hit[1] = hit[1].replace(/[RrLl]/g, match => {
                                 return match === match.toUpperCase() ? nb : nb.toLowerCase();
                             });
                             hand = nb;
                             handCount = 1;
+                        } else {
+                            // ダブルストローク（ゴースト同士）のピッチ補正
+                            if (!lastPitch.includes("f") && !lastPitch.includes("d") && !hit[0].includes("f") && !hit[0].includes("d") && !hit[0].includes("z")) {
+                                hit[0] = lastPitch;
+                            }
+                            
+                            handCount++;
+                            if (handCount > 2) {
+                                let nb = (hand === "R") ? "L" : "R";
+                                hit[1] = hit[1].replace(/[RrLl]/g, match => {
+                                    return match === match.toUpperCase() ? nb : nb.toLowerCase();
+                                });
+                                hand = nb;
+                                handCount = 1;
+                            }
                         }
                     } else { handCount = 1; }
                     lastHand = hand;
@@ -198,30 +191,11 @@
                 } else { handCount = 0; lastIdx = -1; lastHand = ""; }
                 
                 if (!hit[0].includes("z")) lastPitch = hit[0];
-
-                if (hasKick) {
-                    kickCount++;
-                    if (kickCount > 2) {
-                        let updatedSticking = sticking.replace("+K", "").replace("K", "");
-                        if (hit[0].includes("F") || hit[0].includes("f")) {
-                            hit[0] = "c"; 
-                            let nextHand = (lastHand === "R") ? "l" : "r";
-                            hit[1] = nextHand;
-                            hit[2] = 'G';
-                            lastHand = nextHand.toUpperCase();
-                            handCount = 1;
-                        } else {
-                            hit[1] = updatedSticking;
-                        }
-                        kickCount = 0; 
-                    }
-                } else {
-                    kickCount = 0;
-                }
             }
             return fullPhrase;
         }
 
+        // --- 音符の長さ自動補正グリッドシステム ---
         function slotToNotesAndWords(slot) {
             let wordsArr = [];
             
@@ -235,15 +209,17 @@
                     return note + finalDuration;
                 }
                 
-                let isTom = note.includes("e") || note.includes("A");
                 let velocity = (dyn === 'A') ? "!ff!" : "!ppp!";
                 
-                // 【修正】横向きのアクセント記号(>)のみを使用する（ヘッダの%%articulation uで上部に固定されます）
-                let prefix = (dyn === 'A') ? "!>!" + velocity : velocity;
+                // 【修正】スネア(c)とクラッシュシンバルのみにアクセント記号(!>!)を表示する。
+                // 単独のキック(F)やタム(e, A)にはアクセント記号を付けない。
+                let isCrash = note.includes("style=x");
+                let showAccent = (dyn === 'A') && (note.includes("c") || isCrash);
+                
+                let prefix = showAccent ? "!>!" + velocity : velocity;
                 
                 let displaySticking = typeof sticking === 'string' ? sticking : "";
                 if (displaySticking) {
-                    // 【修正】文字ズレを防ぐため、手(R/L)がある場合は K を省略
                     if (/[RL]/i.test(displaySticking)) displaySticking = displaySticking.replace(/\+?K/gi, "");
                     if (displaySticking.toUpperCase() === "K") {
                         displaySticking = "K";
@@ -253,36 +229,38 @@
                 }
                 wordsArr.push(displaySticking || "_");
                 
-                return prefix + note + finalDuration;
+                let result = prefix + note + finalDuration;
+                return result;
             };
 
             let notes = "";
             if (slot.length === 1) {
                 notes = processNote(slot[0], null);
             } else if (slot.length === 6) {
-                // 【修正】6連符と16分音符には / を付与し、かつスペースを詰めずに描画することで2本ビームを保証
-                notes = "(6:4:6" + slot.map(s => processNote(s, "/")).join("");
+                // 6連符
+                notes = "(6:4:6" + slot.map((s) => processNote(s, "/")).join("");
             } else if (slot.length === 4) {
-                notes = slot.map(s => processNote(s, "/")).join("");
+                // 16分音符
+                notes = slot.map((s) => processNote(s, "/")).join("");
             } else if (slot.length === 3) {
-                // 3連符
-                notes = "(3:2:3" + slot.map(s => processNote(s, null)).join("");
+                // 8分音符3連符
+                notes = "(3:2:3" + slot.map((s) => processNote(s, null)).join("");
             } else {
-                notes = slot.map(s => processNote(s, null)).join("");
+                notes = slot.map((s) => processNote(s, null)).join("");
             }
             
             return { notes, words: wordsArr.join(" ") };
         }
 
-        function skeletonToAbc(skeleton, difficulty, fillLength, clickMode) {
+        function skeletonToAbc(skeleton, difficulty, fillLength, clickMode, isTradeMode) {
             if (!skeleton) return "";
             
             let targetSkeleton = skeleton;
             let beatsCount = 4;
             
             if (difficulty === 'fill_in') {
-                beatsCount = 4; 
-                targetSkeleton = [skeleton[0]]; 
+                beatsCount = 4;
+                targetSkeleton = [skeleton[0]]; // 常に1小節分を維持
             }
 
             const generateSystem = (bars) => {
@@ -291,6 +269,7 @@
 
                 bars.forEach((barSkeleton, barIdx) => {
                     for (let beatIdx = 0; beatIdx < 4; beatIdx++) {
+                        // Halfモードや1beatモード等の休符置き換え
                         if (difficulty === 'fill_in') {
                             if (fillLength === 'half') {
                                 if (beatIdx === 0) {
@@ -311,7 +290,6 @@
                             }
                         }
 
-                        // 【修正】生成時に決定した legendRand を使用して確率判定を行う（再描画時の変動を防ぐ）
                         const { key, isCrash, variationIndex, legendRand } = barSkeleton[beatIdx];
                         const keyConfig = feelConfig[key] || feelConfig['rest'];
                         
@@ -352,18 +330,19 @@
                             });
                         }
                         
+                        // クラッシュ適用
                         if (difficulty !== 'basic' && difficulty !== 'fill_in' && isCrash) {
                             let crashApplied = false;
                             for (let i = 0; i < motif.length; i++) { 
                                 if (motif[i][2] === 'A') { 
-                                    motif[i][0] = "[!style=x!f F]"; 
+                                    motif[i][0] = "[!style=x!fF]"; 
                                     motif[i][1] = (motif[i][1] || "R").replace(/\+?K/gi, "") + "+K"; 
                                     crashApplied = true;
                                     break; 
                                 } 
                             }
                             if (!crashApplied && motif.length > 0) {
-                                motif[0][0] = "[!style=x!f F]";
+                                motif[0][0] = "[!style=x!fF]";
                                 motif[0][1] = (motif[0][1] || "R").replace(/\+?K/gi, "") + "+K";
                                 motif[0][2] = 'A';
                             }
@@ -386,9 +365,15 @@
                     if (m.isBarEnd) { notesStr += "| "; wordsStr += "| "; }
                 });
 
+                // 4-Bar Trade用の休符追加
+                if (isTradeMode && difficulty !== 'fill_in') {
+                    notesStr += "z2 z2 z2 z2 | z2 z2 z2 z2 | z2 z2 z2 z2 | z2 z2 z2 z2 | ";
+                    wordsStr += " | | | | ";
+                }
+
                 let mainVoice = notesStr.trim().replace(/\|$/, "|]") + "\n" + wordsStr.trim();
                 
-                // 【修正】クリックの音色をカウベル(!style=x! C)に変更。ドラムマップで56番を指定
+                // クリック（フットハイハット）用のボイス生成
                 let clickVoice = "";
                 if (clickMode !== 'off') {
                     let clickBar = "";
@@ -399,6 +384,10 @@
                     }
                     
                     let totalBars = targetSkeleton.length;
+                    if (isTradeMode && difficulty !== 'fill_in') {
+                        totalBars += 4;
+                    }
+                    
                     for (let i = 0; i < totalBars; i++) {
                         clickVoice += clickBar;
                     }
@@ -406,13 +395,14 @@
                 }
 
                 // 表示用と音声用で楽譜データを完全に分離する
-                let displayAbc = "V:1 stem=up\n" + mainVoice + "\n";
+                // 表示用はV:1指定を外し、アクセントが下へ逃げるABCJSの自動回避をキャンセル
+                let displayAbc = mainVoice + "\n";
                 let audioAbc = displayAbc;
 
                 if (clickMode !== 'off') {
                     audioAbc = "%%score (1 2)\n" +
-                               "V:1 stem=up\n" + mainVoice + "\n" +
-                               "V:2 stem=down\n" + clickVoice + "\n";
+                               "V:1\n" + mainVoice + "\n" +
+                               "V:2\n" + clickVoice + "\n";
                 }
                 
                 return { displayAbc, audioAbc };
@@ -422,8 +412,9 @@
 
         const App = () => {
             const [difficulty, setDifficulty] = useState('basic');
-            const [fillLength, setFillLength] = useState('1bar'); 
+            const [fillLength, setFillLength] = useState('1bar'); // '1bar', 'half', '1beat'
             const [clickMode, setClickMode] = useState('two_four'); // 'off', 'quarter', 'two_four'
+            const [isTradeMode, setIsTradeMode] = useState(false);
             const [skeleton, setSkeleton] = useState(null);
             const [abcString, setAbcString] = useState("");
             const [audioAbcString, setAudioAbcString] = useState("");
@@ -450,6 +441,7 @@
                 const accentKeys = ['acc_1', 'acc_2', 'acc_3'];
                 let newSkeleton = [], prevWasRest = false;
                 
+                // 裏側の骨格(skeleton)は常に4小節で作っておく
                 for (let bar = 0; bar < 4; bar++) {
                     let barSkeleton = [];
                     for (let beat = 0; beat < 4; beat++) {
@@ -461,7 +453,7 @@
                             key, 
                             isCrash, 
                             variationIndex: Math.floor(Math.random() * 1000),
-                            legendRand: Math.random() // サイコロの結果を保存
+                            legendRand: Math.random()
                         });
                     }
                     newSkeleton.push(barSkeleton);
@@ -471,25 +463,31 @@
 
             useEffect(() => {
                 if (skeleton) {
-                    let { displayAbc, audioAbc } = skeletonToAbc(skeleton, difficulty, fillLength, clickMode);
+                    let { displayAbc, audioAbc } = skeletonToAbc(skeleton, difficulty, fillLength, clickMode, isTradeMode);
+                    let timeSig = "4/4";
                     
-                    // 【修正】MIDI drummap C 56 でカウベルをアサイン
-                    const header = `X:1\nT:Jazz Drum Solo Etude\nM:4/4\nL:1/8\nQ:1/4=120\nK:perc\n%%MIDI channel 10\n%%MIDI drummap f 49\n%%MIDI drummap e 45\n%%MIDI drummap c 38\n%%MIDI drummap A 43\n%%MIDI drummap F 36\n%%MIDI drummap C 56\n%%articulation u\n%%stretchlast 1\n%%stafflines 5\n`;
+                    if (difficulty === 'fill_in') {
+                        if (fillLength === '2beats') timeSig = "2/4";
+                    }
                     
-                    setAbcString(header + displayAbc);
-                    setAudioAbcString(header + audioAbc);
+                    // 【修正】画面表示用のヘッダーからQ(テンポ)指定を削除し、BPM表記を消す
+                    const displayHeader = `X:1\nT:Jazz Drum Solo Etude\nM:${timeSig}\nL:1/8\nK:perc\n%%MIDI channel 10\n%%MIDI drummap f 49\n%%MIDI drummap e 45\n%%MIDI drummap c 38\n%%MIDI drummap A 43\n%%MIDI drummap F 36\n%%MIDI drummap d 42\n%%MIDI drummap C 56\n%%stretchlast 1\n%%vocalfont sans-serif 16\n%%stafflines 5\n`;
+                    
+                    // 音声用のヘッダーにはQ=120を残して再生速度を維持する
+                    const audioHeader = `X:1\nT:Jazz Drum Solo Etude\nM:${timeSig}\nL:1/8\nQ:1/4=120\nK:perc\n%%MIDI channel 10\n%%MIDI drummap f 49\n%%MIDI drummap e 45\n%%MIDI drummap c 38\n%%MIDI drummap A 43\n%%MIDI drummap F 36\n%%MIDI drummap d 42\n%%MIDI drummap C 56\n%%stretchlast 1\n%%vocalfont sans-serif 16\n%%stafflines 5\n`;
+
+                    setAbcString(displayHeader + displayAbc);
+                    setAudioAbcString(audioHeader + audioAbc);
                 }
-            }, [skeleton, difficulty, fillLength, clickMode]);
+            }, [skeleton, difficulty, fillLength, clickMode, isTradeMode]);
 
             useEffect(() => {
                 if (abcString && scoreRef.current && abcjsLoaded) {
                     try {
-                        const rendered = ABCJS.renderAbc(scoreRef.current, abcString, { 
-                            responsive: 'resize', add_classes: true, staffwidth: 900, scale: 1.3, paddingtop: 30, paddingbottom: 40 
-                        });
+                        const rendered = ABCJS.renderAbc(scoreRef.current, abcString, { responsive: 'resize', add_classes: true, staffwidth: 900, scale: 1.3 });
                         setVisualObj(rendered[0]);
-                    } catch(e) {
-                        console.warn("ABCJS rendering constraint:", e);
+                    } catch (e) {
+                        console.warn("ABCJS Render Warn:", e);
                     }
                 }
             }, [abcString, abcjsLoaded]);
@@ -498,13 +496,12 @@
                 if (audioAbcString && audioContainerRef.current && abcjsLoaded) {
                     try {
                         const parsedAudio = ABCJS.renderAbc("*", audioAbcString, { add_classes: true })[0];
-                        
                         audioContainerRef.current.innerHTML = "";
                         const controller = new ABCJS.synth.SynthController();
                         controller.load(audioContainerRef.current, null, { displayLoop: true, displayRestart: true, displayPlay: true, displayProgress: true, displayWarp: true });
                         new ABCJS.synth.CreateSynth().init({ visualObj: parsedAudio }).then(() => controller.setTune(parsedAudio, false, { chordsOff: true, midiChannel: 10 }));
-                    } catch(e) {
-                        console.warn("Audio ABCJS Parse Error:", e);
+                    } catch (e) {
+                        console.warn("ABCJS Audio Render Warn:", e);
                     }
                 }
             }, [audioAbcString, abcjsLoaded]);
@@ -515,17 +512,13 @@
                 <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-3 md:p-6 mt-2 md:mt-4 printable-area">
                     <div className="flex justify-between items-center mb-4 md:mb-6">
                         <h1 className="text-xl md:text-3xl font-bold text-zinc-800">Jazz Drum Solo Etude</h1>
-                        <button onClick={() => window.print()} className="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-3 md:py-2 md:px-4 rounded-md shadow-sm transition-colors text-xs md:text-sm flex items-center gap-2">
-                            <span>📄 PDF保存 / 印刷</span>
-                        </button>
+                        <button onClick={() => window.print()} className="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-3 rounded-md shadow-sm transition-colors text-xs md:text-sm">📄 PDF保存 / 印刷</button>
                     </div>
                     <div className="no-print flex flex-col gap-4 mb-6 bg-zinc-50 p-4 rounded-lg border border-zinc-200">
                         <div className="flex flex-wrap justify-center gap-3">
                             <div className="flex bg-white rounded-md border border-zinc-300 overflow-hidden shadow-sm">
                                 <button onClick={() => { unlockAudio(); setDifficulty('basic'); }} className={`px-3 py-2 text-xs md:text-sm font-medium ${difficulty === 'basic' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>1. Basic</button>
-                                <button onClick={() => { unlockAudio(); setDifficulty('orchestration'); }} className={`px-3 py-2 text-xs md:text-sm font-medium ${difficulty === 'orchestration' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>
-                                    2. Orchestration
-                                </button>
+                                <button onClick={() => { unlockAudio(); setDifficulty('orchestration'); }} className={`px-3 py-2 text-xs md:text-sm font-medium ${difficulty === 'orchestration' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>2. Orchestration</button>
                                 <button onClick={() => { unlockAudio(); setDifficulty('advanced'); }} className={`px-3 py-2 text-xs md:text-sm font-medium ${difficulty === 'advanced' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>
                                     3. Advanced
                                 </button>
@@ -535,25 +528,6 @@
                             </div>
                         </div>
                         <div className="flex flex-wrap justify-center gap-3 items-center">
-                            {difficulty === 'fill_in' ? (
-                                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-md border border-zinc-300 shadow-sm">
-                                    <span className="text-xs md:text-sm font-medium text-zinc-500">Length:</span>
-                                    <label className="flex items-center space-x-1 cursor-pointer">
-                                        <input type="radio" checked={fillLength === '1bar'} onChange={() => { unlockAudio(); setFillLength('1bar'); }} className="w-3.5 h-3.5 text-indigo-600 focus:ring-indigo-500" />
-                                        <span className="text-xs md:text-sm text-zinc-700">1 Bar</span>
-                                    </label>
-                                    <label className="flex items-center space-x-1 cursor-pointer">
-                                        <input type="radio" checked={fillLength === 'half'} onChange={() => { unlockAudio(); setFillLength('half'); }} className="w-3.5 h-3.5 text-indigo-600 focus:ring-indigo-500" />
-                                        <span className="text-xs md:text-sm text-zinc-700">Half</span>
-                                    </label>
-                                    <label className="flex items-center space-x-1 cursor-pointer">
-                                        <input type="radio" checked={fillLength === '1beat'} onChange={() => { unlockAudio(); setFillLength('1beat'); }} className="w-3.5 h-3.5 text-indigo-600 focus:ring-indigo-500" />
-                                        <span className="text-xs md:text-sm text-zinc-700">1 Beat</span>
-                                    </label>
-                                </div>
-                            ) : null}
-                            
-                            {/* 【修正】クリック設定は常に表示し、Fill-inと併用可能にする */}
                             <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-md border border-zinc-300 shadow-sm">
                                 <span className="text-xs md:text-sm font-medium text-zinc-500">Click:</span>
                                 <label className="flex items-center space-x-1 cursor-pointer">
@@ -570,16 +544,39 @@
                                 </label>
                             </div>
 
-                            <button onClick={generateNewSkeleton} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md shadow-sm transition-colors text-sm w-full md:w-auto self-center">🔄 New Phrasing</button>
+                            {difficulty === 'fill_in' ? (
+                                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-md border border-zinc-300 shadow-sm">
+                                    <span className="text-xs md:text-sm font-medium text-zinc-500">Length:</span>
+                                    <label className="flex items-center space-x-1 cursor-pointer">
+                                        <input type="radio" checked={fillLength === '1bar'} onChange={() => { unlockAudio(); setFillLength('1bar'); }} className="w-3.5 h-3.5 text-indigo-600 focus:ring-indigo-500" />
+                                        <span className="text-xs md:text-sm text-zinc-700">1 Bar</span>
+                                    </label>
+                                    <label className="flex items-center space-x-1 cursor-pointer">
+                                        <input type="radio" checked={fillLength === 'half'} onChange={() => { unlockAudio(); setFillLength('half'); }} className="w-3.5 h-3.5 text-indigo-600 focus:ring-indigo-500" />
+                                        <span className="text-xs md:text-sm text-zinc-700">Half</span>
+                                    </label>
+                                    <label className="flex items-center space-x-1 cursor-pointer">
+                                        <input type="radio" checked={fillLength === '1beat'} onChange={() => { unlockAudio(); setFillLength('1beat'); }} className="w-3.5 h-3.5 text-indigo-600 focus:ring-indigo-500" />
+                                        <span className="text-xs md:text-sm text-zinc-700">1 Beat</span>
+                                    </label>
+                                </div>
+                            ) : (
+                                <label className="flex items-center space-x-2 cursor-pointer bg-white px-4 py-2 rounded-md border border-zinc-300 shadow-sm hover:bg-zinc-50 transition-colors">
+                                    <input type="checkbox" checked={isTradeMode} onChange={(e) => { unlockAudio(); setIsTradeMode(e.target.checked); }} className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500" />
+                                    <span className="text-xs md:text-sm font-medium text-zinc-700">🎧 4-Bar Trade</span>
+                                </label>
+                            )}
+                            <button onClick={generateNewSkeleton} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md shadow-sm transition-colors text-sm">🔄 New Phrasing</button>
                         </div>
                     </div>
                     <div className="bg-white border-2 border-zinc-100 rounded-lg p-2 md:p-4 overflow-x-auto min-h-[150px]"><div id="score-container" ref={scoreRef}></div></div>
-                    <div className="no-print mt-4 bg-slate-100 border border-slate-300 rounded-lg p-2 w-full max-w-2xl mx-auto shadow-inner"><div ref={audioContainerRef} className="w-full"></div></div>
+                    <div className="no-print mt-4 bg-slate-200 border border-slate-300 rounded-lg p-2 w-full max-w-2xl mx-auto shadow-inner"><div ref={audioContainerRef} className="w-full"></div></div>
                 </div>
             );
         };
 
-        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
