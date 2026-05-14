@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jazz Drum Solo Etude</title>
+    <title>Jazz Drum Solo Etude - Ultimate</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -41,7 +41,7 @@
         .abcjs-inline-audio .abcjs-tempo-wrapper,
         .abcjs-inline-audio .abcjs-midi-tempo,
         .abcjs-inline-audio .abcjs-label {
-            color: #18181b !important; 
+            color: #1e293b !important; 
             font-weight: 600 !important;
             display: inline-block !important;
         }
@@ -70,8 +70,6 @@
         const { useState, useEffect, useRef } = React;
 
         // --- MOTIF LIBRARY (Strict Accent Alignment & Swing Focus) ---
-        // Basic, Advanced, Extreme(Legends) の全てのフレーズが
-        // 物理的なアクセント位置（1打目、2打目、3打目）ごとに厳密にカテゴライズされています。
         const MOTIF_LIBRARY = {
             swing: {
                 rest: { 
@@ -81,13 +79,13 @@
                         [["e", "r", "G"], ["A", "l", "G"], ["A", "r", "G"]]
                     ],
                     legend: [
-                        // アクセントなしの複雑なフィルイン
                         [["c", "r", "G"], ["e", "l", "G"], ["A", "r", "G"], ["F", "K", "G"]],
-                        // アクセントのない均等な6連符（Philly Joe Jones等）
-                        [["c", "r", "G"], ["c", "r", "G"], ["e", "l", "G"], ["e", "l", "G"], ["A", "r", "G"], ["A", "r", "G"]]
+                        [["c", "r", "G"], ["c", "r", "G"], ["e", "l", "G"], ["e", "l", "G"], ["A", "r", "G"], ["A", "r", "G"]],
+                        // Mark Guiliana: 高速リニアの6連符 (K R L K R L)
+                        [["F", "K", "G"], ["c", "r", "G"], ["c", "l", "G"], ["F", "K", "G"], ["e", "r", "G"], ["c", "l", "G"]]
                     ]
                 },
-                acc_1: { // 1打目（拍の頭）にアクセントがあるグループ
+                acc_1: { 
                     basic: [[["c", "R", "A"], ["c", "L", "G"], ["c", "R", "G"]]],
                     advanced: [
                         [["c", "R", "A"], ["A", "l", "G"], ["c", "R", "G"]],
@@ -99,13 +97,30 @@
                         // Philly Joe Jones (頭アクセントの6連符)
                         [["c", "R", "A"], ["c", "l", "G"], ["c", "r", "G"], ["c", "r", "G"], ["c", "l", "G"], ["c", "l", "G"]],
                         [["c", "R", "A"], ["c", "l", "G"], ["e", "r", "G"], ["e", "r", "G"], ["A", "l", "G"], ["A", "l", "G"]],
-                        // 指定バリエーション: r l l r l k (R L L R L K)
+                        
+                        // バリエーション: r l l r l k (R L L R L K)
                         [["c", "R", "A"], ["c", "l", "G"], ["c", "l", "G"], ["e", "r", "G"], ["c", "l", "G"], ["F", "K", "G"]],
+                        [["e", "R", "A"], ["c", "l", "G"], ["c", "l", "G"], ["A", "r", "G"], ["c", "l", "G"], ["F", "K", "G"]],
+                        [["[!style=x!f F]", "R", "A"], ["c", "l", "G"], ["c", "l", "G"], ["e", "r", "G"], ["c", "l", "G"], ["F", "K", "G"]],
+                        
+                        // バリエーション: r l l r r k (R L L R R K)
+                        [["c", "R", "A"], ["c", "l", "G"], ["c", "l", "G"], ["c", "r", "G"], ["c", "r", "G"], ["F", "K", "G"]],
+                        [["e", "R", "A"], ["c", "l", "G"], ["c", "l", "G"], ["c", "r", "G"], ["c", "r", "G"], ["F", "K", "G"]], 
+                        [["[!style=x!f F]", "R", "A"], ["c", "l", "G"], ["c", "l", "G"], ["c", "r", "G"], ["c", "r", "G"], ["F", "K", "G"]], 
+                        
+                        // バリエーション: r l r r k (R L R R K)
+                        [["c", "R", "A"], ["c", "l", "G"], ["c", "r", "G"], ["c", "r", "G"], ["F", "K", "G"], ["z", "", ""]],
+                        [["e", "R", "A"], ["c", "l", "G"], ["A", "r", "G"], ["A", "r", "G"], ["F", "K", "G"], ["z", "", ""]], 
+                        [["[!style=x!f F]", "R", "A"], ["c", "l", "G"], ["c", "r", "G"], ["c", "r", "G"], ["F", "K", "G"], ["z", "", ""]],
+                        
                         // Elvin Jones
-                        [["e", "R", "A"], ["F", "K", "G"], ["A", "l", "G"]]
+                        [["e", "R", "A"], ["F", "K", "G"], ["A", "l", "G"]],
+                        
+                        // Mark Guiliana: スタッター16分音符
+                        [["c", "R", "A"], ["F", "K", "G"], ["c", "l", "G"], ["c", "l", "G"]]
                     ]
                 },
-                acc_2: { // 2打目（真ん中）にアクセントがあるグループ
+                acc_2: { 
                     basic: [[["c", "L", "G"], ["c", "R", "A"], ["c", "L", "G"]]],
                     advanced: [
                         [["A", "l", "G"], ["c", "R", "A"], ["c", "L", "G"]],
@@ -120,7 +135,7 @@
                         [["A", "r", "G"], ["e", "l", "G"], ["c", "R", "A"], ["c", "r", "G"], ["F", "K", "G"], ["F", "K", "G"]]
                     ]
                 },
-                acc_3: { // 3打目（最後）にアクセントがあるグループ
+                acc_3: { 
                     basic: [[["c", "R", "G"], ["c", "L", "G"], ["c", "R", "A"]]],
                     advanced: [
                         [["c", "r", "G"], ["A", "l", "G"], ["c", "R", "A"]],
@@ -132,47 +147,50 @@
                         // Jack DeJohnette
                         [["A", "r", "G"], ["F", "K", "G"], ["e", "L", "A"]],
                         // Philly Joe Jones (最後アクセントの6連符)
-                        [["c", "r", "G"], ["c", "l", "G"], ["c", "l", "G"], ["e", "r", "G"], ["e", "r", "G"], ["A", "L", "A"]]
+                        [["c", "r", "G"], ["c", "l", "G"], ["c", "l", "G"], ["e", "r", "G"], ["e", "r", "G"], ["A", "L", "A"]],
+                        // Mark Guiliana: ディスプレイスメント
+                        [["F", "K", "G"], ["c", "l", "G"], ["F", "K", "G"], ["c", "L", "A"]]
                     ]
                 }
             }
         };
 
         function applyStickingGuard(fullPhrase) {
-            let lastHand = "", lastPitch = "", lastIdx = -1, handCount = 0;
+            let lastHand = "";
+            let lastPitch = ""; 
+            let lastIdx = -1;
+            let handCount = 0;
+            let kickCount = 0;
+
             for (let i = 0; i < fullPhrase.length; i++) {
                 let hit = fullPhrase[i];
                 if (!hit || hit[0].includes("z")) continue; 
-                let sticking = hit[1] || "";
-                if (typeof sticking !== 'string') sticking = String(sticking);
 
-                let hand = sticking.toUpperCase().includes("R") ? "R" : (sticking.toUpperCase().includes("L") ? "L" : "");
+                let sticking = hit[1] || "";
+                let hasKick = sticking.includes("K");
+                let hand = "";
+                if (sticking.toUpperCase().includes("R")) hand = "R";
+                else if (sticking.toUpperCase().includes("L")) hand = "L";
 
                 if (hand !== "") {
                     if (hand === lastHand) {
-                        // 【修正】アクセントが含まれるダブルストロークは物理的に不自然なので、手順を反転させてオルタネイトにする
-                        if (hit[2] === 'A' || (lastIdx !== -1 && fullPhrase[lastIdx][2] === 'A')) {
+                        // 【修正】ダブルストローク時はアクセントを解除してゴーストにする (物理的制約)
+                        hit[2] = 'G'; 
+                        if (lastIdx !== -1) fullPhrase[lastIdx][2] = 'G'; 
+
+                        // 【修正】ダブルストローク時は楽器をまたがない (移動ダブルの禁止)
+                        if (!lastPitch.includes("f") && !lastPitch.includes("d") && !hit[0].includes("f") && !hit[0].includes("d") && !hit[0].includes("z")) {
+                            hit[0] = lastPitch;
+                        }
+                        
+                        handCount++;
+                        if (handCount > 2) {
                             let nb = (hand === "R") ? "L" : "R";
                             hit[1] = hit[1].replace(/[RrLl]/g, match => {
                                 return match === match.toUpperCase() ? nb : nb.toLowerCase();
                             });
                             hand = nb;
                             handCount = 1;
-                        } else {
-                            // ダブルストローク（ゴースト同士）のピッチ補正
-                            if (!lastPitch.includes("f") && !lastPitch.includes("d") && !hit[0].includes("f") && !hit[0].includes("d") && !hit[0].includes("z")) {
-                                hit[0] = lastPitch;
-                            }
-                            
-                            handCount++;
-                            if (handCount > 2) {
-                                let nb = (hand === "R") ? "L" : "R";
-                                hit[1] = hit[1].replace(/[RrLl]/g, match => {
-                                    return match === match.toUpperCase() ? nb : nb.toLowerCase();
-                                });
-                                hand = nb;
-                                handCount = 1;
-                            }
                         }
                     } else { handCount = 1; }
                     lastHand = hand;
@@ -180,16 +198,35 @@
                 } else { handCount = 0; lastIdx = -1; lastHand = ""; }
                 
                 if (!hit[0].includes("z")) lastPitch = hit[0];
+
+                if (hasKick) {
+                    kickCount++;
+                    if (kickCount > 2) {
+                        let updatedSticking = sticking.replace("+K", "").replace("K", "");
+                        if (hit[0].includes("F") || hit[0].includes("f")) {
+                            hit[0] = "c"; 
+                            let nextHand = (lastHand === "R") ? "l" : "r";
+                            hit[1] = nextHand;
+                            hit[2] = 'G';
+                            lastHand = nextHand.toUpperCase();
+                            handCount = 1;
+                        } else {
+                            hit[1] = updatedSticking;
+                        }
+                        kickCount = 0; 
+                    }
+                } else {
+                    kickCount = 0;
+                }
             }
             return fullPhrase;
         }
 
-        // --- 音符の長さ自動補正グリッドシステム ---
         function slotToNotesAndWords(slot) {
             let wordsArr = [];
             
             // overrideDurationで要素数に応じた最適な長さを強制上書きする
-            const processNote = (s, overrideDuration = null, isLastInBeat = false) => {
+            const processNote = (s, overrideDuration = null) => {
                 let [note, sticking, dyn, duration] = s;
                 let finalDuration = overrideDuration !== null ? overrideDuration : "";
 
@@ -201,16 +238,12 @@
                 let isTom = note.includes("e") || note.includes("A");
                 let velocity = (dyn === 'A') ? "!ff!" : "!ppp!";
                 
-                // 【修正】タムやキックであっても明確にアクセント記号(!>!)を表示するようにし、同期を視覚的にわかりやすくする
-                let prefix = (dyn === 'A') ? "!>!" + velocity : velocity;
+                // 【修正】タムにはアクセント記号(!>!)を表示しない
+                let prefix = (dyn === 'A') ? (isTom ? velocity : "!>!" + velocity) : velocity;
                 
-                // ハイハット(d)のゴーストは少し音量を上げてタイトに
-                if (note.includes("d")) {
-                    if (dyn !== 'A') velocity = "!p!";
-                }
-
                 let displaySticking = typeof sticking === 'string' ? sticking : "";
                 if (displaySticking) {
+                    // 【修正】文字ズレを防ぐため、手(R/L)がある場合は K を省略
                     if (/[RL]/i.test(displaySticking)) displaySticking = displaySticking.replace(/\+?K/gi, "");
                     if (displaySticking.toUpperCase() === "K") {
                         displaySticking = "K";
@@ -220,55 +253,81 @@
                 }
                 wordsArr.push(displaySticking || "_");
                 
-                let result = prefix + note + finalDuration;
-                
-                // アンティシペーション（食い）のタイを付与する処理を削除（レガート/スラー記号に見えるため）
-                // if (isLastInBeat && dyn === 'A' && (note.includes('F') || note.includes('f'))) {
-                //     result += "-";
-                // }
-
-                return result;
+                return prefix + note + finalDuration;
             };
 
             let notes = "";
             if (slot.length === 1) {
-                notes = processNote(slot[0], null, true);
+                notes = processNote(slot[0], null);
             } else if (slot.length === 6) {
-                // 6連符 (1拍に16分音符相当[/]が6つ入る)
-                notes = "(6" + slot.map((s, i) => processNote(s, "/", i === slot.length - 1)).join("");
+                // 【修正】6連符と16分音符には / を付与し、かつスペースを詰めずに描画することで2本ビームを保証
+                notes = "(6:4:6" + slot.map(s => processNote(s, "/")).join("");
             } else if (slot.length === 4) {
-                // 16分音符4つ (1拍に16分音符相当[/]が4つ入る)
-                notes = slot.map((s, i) => processNote(s, "/", i === slot.length - 1)).join("");
+                notes = slot.map(s => processNote(s, "/")).join("");
             } else if (slot.length === 3) {
-                // 8分音符3連符 (デフォルトの長さで3つ入る)
-                notes = "(3" + slot.map((s, i) => processNote(s, null, i === slot.length - 1)).join("");
+                // 3連符
+                notes = "(3:2:3" + slot.map(s => processNote(s, null)).join("");
             } else {
-                notes = slot.map((s, i) => processNote(s, null, i === slot.length - 1)).join("");
+                notes = slot.map(s => processNote(s, null)).join("");
             }
             
             return { notes, words: wordsArr.join(" ") };
         }
 
-        function skeletonToAbc(skeleton, difficulty) {
+        function skeletonToAbc(skeleton, difficulty, fillLength, clickMode) {
             if (!skeleton) return "";
+            
+            let targetSkeleton = skeleton;
+            let beatsCount = 4;
+            
+            if (difficulty === 'fill_in') {
+                beatsCount = 4; 
+                targetSkeleton = [skeleton[0]]; 
+            }
+
             const generateSystem = (bars) => {
                 let flatPhrase = [];
                 const feelConfig = MOTIF_LIBRARY.swing;
 
                 bars.forEach((barSkeleton, barIdx) => {
-                    barSkeleton.forEach((beatSkeleton, beatIdx) => {
-                        const { key, isCrash, variationIndex } = beatSkeleton;
+                    for (let beatIdx = 0; beatIdx < 4; beatIdx++) {
+                        if (difficulty === 'fill_in') {
+                            if (fillLength === 'half') {
+                                if (beatIdx === 0) {
+                                    flatPhrase.push({ motif: [["z4", "", ""]], isBarEnd: false });
+                                    continue;
+                                }
+                                if (beatIdx === 1) continue;
+                            } else if (fillLength === '1beat') {
+                                if (beatIdx === 0) {
+                                    flatPhrase.push({ motif: [["z4", "", ""]], isBarEnd: false });
+                                    continue;
+                                }
+                                if (beatIdx === 1) continue;
+                                if (beatIdx === 2) {
+                                    flatPhrase.push({ motif: [["z2", "", ""]], isBarEnd: false });
+                                    continue;
+                                }
+                            }
+                        }
+
+                        // 【修正】生成時に決定した legendRand を使用して確率判定を行う（再描画時の変動を防ぐ）
+                        const { key, isCrash, variationIndex, legendRand } = barSkeleton[beatIdx];
                         const keyConfig = feelConfig[key] || feelConfig['rest'];
                         
                         let options;
-                        if (difficulty === 'extreme') {
-                            // 1拍ごとの確率を約8%に引き上げ。これにより、4小節(16拍)全体を通して
-                            // 約70%以上の確率でどこかしらにレジェンドリックが出現するバランスになります。
-                            let isLegendLick = Math.random() < 0.08;
+                        if (difficulty === 'fill_in') {
+                            let isLegendLick = legendRand < 0.80;
                             if (isLegendLick && keyConfig.legend) {
                                 options = [keyConfig.legend[variationIndex % keyConfig.legend.length]];
                             } else {
-                                // ベースをOrchestration(advanced)に完全に固定
+                                options = keyConfig.advanced || keyConfig.basic;
+                            }
+                        } else if (difficulty === 'legends') {
+                            let isLegendLick = legendRand < 0.08;
+                            if (isLegendLick && keyConfig.legend) {
+                                options = [keyConfig.legend[variationIndex % keyConfig.legend.length]];
+                            } else {
                                 options = keyConfig.advanced || keyConfig.basic;
                             }
                         } else {
@@ -289,8 +348,9 @@
                                     if (step[1]) step[1] = step[1].replace(/\+?K/g, "");
                                 }
                             });
-                        } else if (isCrash) {
-                            // Basicモード以外の場合のみ、クラッシュシンバルを適用する
+                        }
+                        
+                        if (difficulty !== 'basic' && difficulty !== 'fill_in' && isCrash) {
                             let crashApplied = false;
                             for (let i = 0; i < motif.length; i++) { 
                                 if (motif[i][2] === 'A') { 
@@ -306,8 +366,8 @@
                                 motif[0][2] = 'A';
                             }
                         }
-                        flatPhrase.push({ motif, isBarEnd: (beatIdx === 3) });
-                    });
+                        flatPhrase.push({ motif, isBarEnd: (beatIdx === beatsCount - 1) });
+                    }
                 });
                 
                 let allSteps = []; flatPhrase.forEach(m => allSteps.push(...m.motif));
@@ -315,45 +375,92 @@
                 
                 let notesStr = "", wordsStr = "w: ", stepIdx = 0;
                 flatPhrase.forEach(m => {
-                    let motifToProcess = []; for(let i=0; i<m.motif.length; i++) motifToProcess.push(allSteps[stepIdx++]);
+                    let motifToProcess = []; 
+                    for(let i=0; i<m.motif.length; i++) motifToProcess.push(allSteps[stepIdx++]);
+                    
                     let { notes, words } = slotToNotesAndWords(motifToProcess);
-                    notesStr += notes + " "; wordsStr += words + " "; if (m.isBarEnd) { notesStr += "| "; wordsStr += "| "; }
+                    notesStr += notes + " "; 
+                    if (words) wordsStr += words + " "; 
+                    if (m.isBarEnd) { notesStr += "| "; wordsStr += "| "; }
                 });
-                return notesStr + "\n" + wordsStr + "\n";
+
+                let mainVoice = notesStr.trim().replace(/\|$/, "|]") + "\n" + wordsStr.trim();
+                
+                // 【修正】クリック（フットハイハット）用のボイス生成
+                let clickVoice = "";
+                if (clickMode !== 'off') {
+                    let clickBar = "";
+                    if (clickMode === 'quarter') {
+                        clickBar = "[!style=x! C]2 [!style=x! C]2 [!style=x! C]2 [!style=x! C]2 | ";
+                    } else if (clickMode === 'two_four') {
+                        clickBar = "x2 [!style=x! C]2 x2 [!style=x! C]2 | ";
+                    }
+                    
+                    let totalBars = targetSkeleton.length;
+                    for (let i = 0; i < totalBars; i++) {
+                        clickVoice += clickBar;
+                    }
+                    clickVoice = clickVoice.trim().replace(/\|$/, "|]");
+                }
+
+                // 表示用と音声用で楽譜データを完全に分離する
+                let displayAbc = mainVoice + "\n";
+                let audioAbc = displayAbc;
+
+                if (clickMode !== 'off') {
+                    audioAbc = "%%score (1 2)\n" +
+                               "V:1\n" + mainVoice + "\n" +
+                               "V:2\n" + clickVoice + "\n";
+                }
+                
+                return { displayAbc, audioAbc };
             };
-            return generateSystem(skeleton).trim().slice(0, -1) + "] \n";
+            return generateSystem(targetSkeleton);
         }
 
         const App = () => {
             const [difficulty, setDifficulty] = useState('basic');
-            const [isTradeMode, setIsTradeMode] = useState(false);
+            const [fillLength, setFillLength] = useState('1bar'); 
+            const [clickMode, setClickMode] = useState('two_four'); // 'off', 'quarter', 'two_four'
             const [skeleton, setSkeleton] = useState(null);
             const [abcString, setAbcString] = useState("");
+            const [audioAbcString, setAudioAbcString] = useState("");
             const [visualObj, setVisualObj] = useState(null);
             const scoreRef = useRef(null);
             const audioContainerRef = useRef(null);
 
+            const abcjsLoaded = typeof ABCJS !== 'undefined';
+
             const unlockAudio = async () => {
+                if (!abcjsLoaded) return;
                 const context = ABCJS.synth.activeAudioContext();
                 if (context && context.state === 'suspended') await context.resume();
             };
 
             useEffect(() => { 
+                if (!abcjsLoaded) return;
                 generateNewSkeleton(); 
-            }, []);
+            }, [abcjsLoaded]);
 
             const generateNewSkeleton = () => {
+                if (!abcjsLoaded) return;
                 unlockAudio();
-                // 完全に 1, 2, 3 のみに制限
                 const accentKeys = ['acc_1', 'acc_2', 'acc_3'];
                 let newSkeleton = [], prevWasRest = false;
+                
                 for (let bar = 0; bar < 4; bar++) {
                     let barSkeleton = [];
                     for (let beat = 0; beat < 4; beat++) {
                         let key = (prevWasRest || Math.random() >= 0.3) ? accentKeys[Math.floor(Math.random() * accentKeys.length)] : 'rest';
                         prevWasRest = (key === 'rest');
                         let isCrash = (beat === 0 && key !== 'rest' && Math.random() < (bar === 0 ? 0.8 : 0.4));
-                        barSkeleton.push({ key, isCrash, variationIndex: Math.floor(Math.random() * 100) });
+                        
+                        barSkeleton.push({ 
+                            key, 
+                            isCrash, 
+                            variationIndex: Math.floor(Math.random() * 1000),
+                            legendRand: Math.random() // サイコロの結果を保存
+                        });
                     }
                     newSkeleton.push(barSkeleton);
                 }
@@ -362,63 +469,110 @@
 
             useEffect(() => {
                 if (skeleton) {
-                    let body = skeletonToAbc(skeleton, difficulty);
-                    if (isTradeMode) {
-                        body = body.replace(/\] \n$/, "z2 z2 z2 z2 | z2 z2 z2 z2 | z2 z2 z2 z2 | z2 z2 z2 z2 |] \nw: | | | | \n");
-                    }
+                    let { displayAbc, audioAbc } = skeletonToAbc(skeleton, difficulty, fillLength, clickMode);
                     
-                    setAbcString(`X:1\nT:Jazz Drum Solo Etude\nM:4/4\nL:1/8\nQ:1/4=120\nK:perc\n%%MIDI channel 10\n%%MIDI drummap f 49\n%%MIDI drummap e 45\n%%MIDI drummap c 38\n%%MIDI drummap A 43\n%%MIDI drummap F 36\n%%MIDI drummap d 42\n%%articulation u\n%%stretchlast 1\n%%stafflines 5\n` + body);
+                    const header = `X:1\nT:Jazz Drum Solo Etude\nM:4/4\nL:1/8\nQ:1/4=120\nK:perc\n%%MIDI channel 10\n%%MIDI drummap f 49\n%%MIDI drummap e 45\n%%MIDI drummap c 38\n%%MIDI drummap A 43\n%%MIDI drummap F 36\n%%MIDI drummap C 44\n%%articulation u\n%%stretchlast 1\n%%stafflines 5\n`;
+                    
+                    setAbcString(header + displayAbc);
+                    setAudioAbcString(header + audioAbc);
                 }
-            }, [skeleton, difficulty, isTradeMode]);
+            }, [skeleton, difficulty, fillLength, clickMode]);
 
             useEffect(() => {
-                if (abcString && scoreRef.current) {
-                    const rendered = ABCJS.renderAbc(scoreRef.current, abcString, { responsive: 'resize', add_classes: true, scale: 1.3 });
-                    setVisualObj(rendered[0]);
+                if (abcString && scoreRef.current && abcjsLoaded) {
+                    try {
+                        const rendered = ABCJS.renderAbc(scoreRef.current, abcString, { 
+                            responsive: 'resize', add_classes: true, staffwidth: 900, scale: 1.3, paddingtop: 30, paddingbottom: 40 
+                        });
+                        setVisualObj(rendered[0]);
+                    } catch(e) {
+                        console.warn("ABCJS rendering constraint:", e);
+                    }
                 }
-            }, [abcString]);
+            }, [abcString, abcjsLoaded]);
 
             useEffect(() => {
-                if (visualObj && audioContainerRef.current) {
-                    audioContainerRef.current.innerHTML = "";
-                    const controller = new ABCJS.synth.SynthController();
-                    controller.load(audioContainerRef.current, null, { displayLoop: true, displayRestart: true, displayPlay: true, displayProgress: true, displayWarp: true });
-                    new ABCJS.synth.CreateSynth().init({ visualObj }).then(() => controller.setTune(visualObj, false, { chordsOff: true, midiChannel: 10 }));
+                if (audioAbcString && audioContainerRef.current && abcjsLoaded) {
+                    try {
+                        const parsedAudio = ABCJS.renderAbc("*", audioAbcString, { add_classes: true })[0];
+                        
+                        audioContainerRef.current.innerHTML = "";
+                        const controller = new ABCJS.synth.SynthController();
+                        controller.load(audioContainerRef.current, null, { displayLoop: true, displayRestart: true, displayPlay: true, displayProgress: true, displayWarp: true });
+                        new ABCJS.synth.CreateSynth().init({ visualObj: parsedAudio }).then(() => controller.setTune(parsedAudio, false, { chordsOff: true, midiChannel: 10 }));
+                    } catch(e) {
+                        console.warn("Audio ABCJS Parse Error:", e);
+                    }
                 }
-            }, [visualObj]);
+            }, [audioAbcString, abcjsLoaded]);
+
+            if (!abcjsLoaded) return null;
 
             return (
                 <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-3 md:p-6 mt-2 md:mt-4 printable-area">
                     <div className="flex justify-between items-center mb-4 md:mb-6">
                         <h1 className="text-xl md:text-3xl font-bold text-zinc-800">Jazz Drum Solo Etude</h1>
-                        <button onClick={() => window.print()} className="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-3 rounded-md shadow-sm transition-colors text-xs md:text-sm">📄 PDF保存 / 印刷</button>
+                        <button onClick={() => window.print()} className="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-3 md:py-2 md:px-4 rounded-md shadow-sm transition-colors text-xs md:text-sm flex items-center gap-2">
+                            <span>📄 PDF保存 / 印刷</span>
+                        </button>
                     </div>
                     <div className="no-print flex flex-col gap-4 mb-6 bg-zinc-50 p-4 rounded-lg border border-zinc-200">
                         <div className="flex flex-wrap justify-center gap-3">
                             <div className="flex bg-white rounded-md border border-zinc-300 overflow-hidden shadow-sm">
-                                <button onClick={() => { unlockAudio(); setDifficulty('basic'); }} className={`px-4 py-2 text-sm font-medium transition-colors ${difficulty === 'basic' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>1. Basic</button>
-                                <button onClick={() => { unlockAudio(); setDifficulty('advanced'); }} className={`px-4 py-2 text-sm font-medium transition-colors ${difficulty === 'advanced' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>2. Orchestration</button>
-                                <button onClick={() => { unlockAudio(); setDifficulty('extreme'); }} className={`px-4 py-2 text-sm font-medium transition-colors ${difficulty === 'extreme' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>
-                                    3. Advanced
+                                <button onClick={() => { unlockAudio(); setDifficulty('basic'); }} className={`px-3 py-2 text-xs md:text-sm font-medium ${difficulty === 'basic' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>1. Basic</button>
+                                <button onClick={() => { unlockAudio(); setDifficulty('advanced'); }} className={`px-3 py-2 text-xs md:text-sm font-medium ${difficulty === 'advanced' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>2. Orchestration</button>
+                                <button onClick={() => { unlockAudio(); setDifficulty('legends'); }} className={`px-3 py-2 text-xs md:text-sm font-medium ${difficulty === 'legends' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>
+                                    3. Legends
+                                </button>
+                                <button onClick={() => { unlockAudio(); setDifficulty('fill_in'); }} className={`px-3 py-2 text-xs md:text-sm font-medium ${difficulty === 'fill_in' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-100 text-zinc-700'}`}>
+                                    4. Fill-in
                                 </button>
                             </div>
                         </div>
                         <div className="flex flex-wrap justify-center gap-3 items-center">
-                            <label className="flex items-center space-x-2 cursor-pointer bg-white px-4 py-2 rounded-md border border-zinc-300 shadow-sm hover:bg-zinc-50 transition-colors">
-                                <input type="checkbox" checked={isTradeMode} onChange={(e) => setIsTradeMode(e.target.checked)} className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500" />
-                                <span className="text-xs md:text-sm font-medium text-zinc-700">🎧 4-Bar Trade</span>
-                            </label>
-                            <button onClick={generateNewSkeleton} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md shadow-sm transition-colors text-sm">🔄 New Phrasing</button>
+                            {difficulty === 'fill_in' ? (
+                                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-md border border-zinc-300 shadow-sm">
+                                    <span className="text-xs md:text-sm font-medium text-zinc-500">Length:</span>
+                                    <label className="flex items-center space-x-1 cursor-pointer">
+                                        <input type="radio" checked={fillLength === '1bar'} onChange={() => { unlockAudio(); setFillLength('1bar'); }} className="w-3.5 h-3.5 text-indigo-600 focus:ring-indigo-500" />
+                                        <span className="text-xs md:text-sm text-zinc-700">1 Bar</span>
+                                    </label>
+                                    <label className="flex items-center space-x-1 cursor-pointer">
+                                        <input type="radio" checked={fillLength === 'half'} onChange={() => { unlockAudio(); setFillLength('half'); }} className="w-3.5 h-3.5 text-indigo-600 focus:ring-indigo-500" />
+                                        <span className="text-xs md:text-sm text-zinc-700">Half</span>
+                                    </label>
+                                    <label className="flex items-center space-x-1 cursor-pointer">
+                                        <input type="radio" checked={fillLength === '1beat'} onChange={() => { unlockAudio(); setFillLength('1beat'); }} className="w-3.5 h-3.5 text-indigo-600 focus:ring-indigo-500" />
+                                        <span className="text-xs md:text-sm text-zinc-700">1 Beat</span>
+                                    </label>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-md border border-zinc-300 shadow-sm">
+                                    <span className="text-xs md:text-sm font-medium text-zinc-500">Click:</span>
+                                    <label className="flex items-center space-x-1 cursor-pointer">
+                                        <input type="radio" checked={clickMode === 'off'} onChange={() => { unlockAudio(); setClickMode('off'); }} className="w-3.5 h-3.5 text-indigo-600 focus:ring-indigo-500" />
+                                        <span className="text-xs md:text-sm text-zinc-700">Off</span>
+                                    </label>
+                                    <label className="flex items-center space-x-1 cursor-pointer">
+                                        <input type="radio" checked={clickMode === 'quarter'} onChange={() => { unlockAudio(); setClickMode('quarter'); }} className="w-3.5 h-3.5 text-indigo-600 focus:ring-indigo-500" />
+                                        <span className="text-xs md:text-sm text-zinc-700">1/4</span>
+                                    </label>
+                                    <label className="flex items-center space-x-1 cursor-pointer">
+                                        <input type="radio" checked={clickMode === 'two_four'} onChange={() => { unlockAudio(); setClickMode('two_four'); }} className="w-3.5 h-3.5 text-indigo-600 focus:ring-indigo-500" />
+                                        <span className="text-xs md:text-sm text-zinc-700">2 & 4</span>
+                                    </label>
+                                </div>
+                            )}
+                            <button onClick={generateNewSkeleton} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md shadow-sm transition-colors text-sm w-full md:w-auto self-center">🔄 New Phrasing</button>
                         </div>
                     </div>
                     <div className="bg-white border-2 border-zinc-100 rounded-lg p-2 md:p-4 overflow-x-auto min-h-[150px]"><div id="score-container" ref={scoreRef}></div></div>
-                    <div className="no-print mt-4 bg-slate-200 border border-slate-300 rounded-lg p-2 w-full max-w-2xl mx-auto shadow-inner"><div ref={audioContainerRef} className="w-full"></div></div>
+                    <div className="no-print mt-4 bg-slate-100 border border-slate-300 rounded-lg p-2 w-full max-w-2xl mx-auto shadow-inner"><div ref={audioContainerRef} className="w-full"></div></div>
                 </div>
             );
         };
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
